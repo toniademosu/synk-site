@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're invited to Synk</title>
+<meta name="description" content="A friend invited you to Synk — split bills, pool money, and spend together.">
+<meta property="og:title" content="You're invited to Synk">
+<meta property="og:description" content="Split the bill. Pool the money. Spend together.">
+<meta property="og:image" content="https://synk.money/assets/icon.png">
+<meta name="theme-color" content="#0C0D11">
+<link rel="icon" type="image/png" href="/assets/logo-mark.png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0C0D11; --panel: rgba(255,255,255,.04); --hairline: rgba(255,255,255,.08);
+    --text: #fff; --subtext: #9ca3af;
+    --grad: linear-gradient(135deg, #f43f5e, #f97316);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100svh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 32px 24px;
+  }
+  a { text-decoration: none; color: inherit; }
+  .coin { width: 96px; height: 96px; margin-bottom: 28px; animation: pop .6s cubic-bezier(.2,.9,.3,1.2) both; }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  .eyebrow {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; margin-bottom: 14px;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  h1 { font-size: clamp(26px, 6vw, 38px); font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; max-width: 520px; }
+  p.sub { color: var(--subtext); font-size: 15px; line-height: 1.6; margin: 16px 0 36px; max-width: 420px; }
+  .pill {
+    display: inline-block; background: var(--grad); color: #fff;
+    padding: 15px 40px; border-radius: 999px; font-weight: 700; font-size: 16px;
+    box-shadow: 0 4px 24px rgba(244,63,94,.35);
+    transition: transform .15s ease;
+  }
+  .pill:hover { transform: translateY(-1px); }
+  .secondary { display: block; margin-top: 20px; color: var(--subtext); font-size: 14px; }
+  .secondary a { color: var(--text); border-bottom: 1px solid var(--hairline); padding-bottom: 1px; }
+  .secondary a:hover { color: #f97316; }
+  footer { position: fixed; bottom: 20px; color: var(--subtext); font-size: 12px; }
+  footer a:hover { color: #f97316; }
+</style>
+</head>
+<body>
+
+<img class="coin" src="/assets/logo-mark.png" alt="Synk">
+<span class="eyebrow">You're invited</span>
+<h1 id="headline">Join your friends on Synk</h1>
+<p class="sub">Split bills without the math, pool money for plans, and settle up your way — free from your bank, or instant.</p>
+
+<a class="pill" id="openBtn" href="#">Open in the app</a>
+<span class="secondary">Don't have Synk yet? <a href="mailto:hello@synk.money?subject=Synk%20beta%20invite">Get the app</a></span>
+
+<footer><a href="/">synk.money</a></footer>
+
+<script>
+  // Personalize + hand off to the app. The ?ref= is the inviter's username —
+  // the app captures it from the deep link for friend attribution.
+  var params = new URLSearchParams(location.search);
+  var ref = (params.get('ref') || '').trim();
+  // usernames are tightly validated in-app; render only a conservative subset
+  if (/^[a-zA-Z0-9_.]{2,30}$/.test(ref)) {
+    document.getElementById('headline').textContent = '@' + ref + ' invited you to Synk';
+  }
+  var deepLink = 'synk://join' + (ref ? ('?ref=' + encodeURIComponent(ref)) : '');
+  var btn = document.getElementById('openBtn');
+  btn.setAttribute('href', deepLink);
+  // Auto-attempt once: if the app is installed the OS takes over; if not,
+  // nothing happens and the visitor still has both buttons.
+  setTimeout(function () { location.href = deepLink; }, 600);
+</script>
+
+</body>
+</html>

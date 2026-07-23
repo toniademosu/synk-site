@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "H45P3DL8HR.com.splitsync.mobile",
+        "paths": ["/join", "/join/*"]
+      }
+    ]
+  }
+}
