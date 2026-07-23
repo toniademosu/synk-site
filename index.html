@@ -64,17 +64,22 @@
 
   /* the synk gesture: two coin halves slide together, settle, glow */
   .coin-stage { position: relative; width: 132px; height: 132px; margin: 0 auto 36px; }
+  /* (settle animation for .coin-stage defined below with the halves) */
   .coin-half { position: absolute; inset: 0; }
   .coin-half img { width: 132px; height: 132px; display: block; }
-  .coin-left  { clip-path: inset(0 50% 0 0); animation: fromLeft  .9s cubic-bezier(.2,.9,.3,1.15) both; }
-  .coin-right { clip-path: inset(0 0 0 50%); animation: fromRight .9s cubic-bezier(.2,.9,.3,1.15) both; }
+  /* halves land exactly at center (no overshoot — they must never cross),
+     then the assembled coin does one clean settle pulse */
+  .coin-left  { clip-path: inset(0 50% 0 0); animation: fromLeft  .8s cubic-bezier(.22,.8,.3,1) both; }
+  .coin-right { clip-path: inset(0 0 0 50%); animation: fromRight .8s cubic-bezier(.22,.8,.3,1) both; }
+  .coin-stage { animation: settle .5s ease .82s both; }
   .coin-glow {
     position: absolute; inset: -28px;
     background: radial-gradient(circle, rgba(249,115,22,.35), transparent 65%);
-    opacity: 0; animation: glowIn .8s ease .75s both;
+    opacity: 0; animation: glowIn .8s ease .82s both;
   }
-  @keyframes fromLeft  { from { transform: translateX(-56px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes fromRight { from { transform: translateX(56px);  opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fromLeft  { from { transform: translateX(-56px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fromRight { from { transform: translateX(56px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes settle { 0% { transform: scale(1); } 40% { transform: scale(1.045); } 100% { transform: scale(1); } }
   @keyframes glowIn { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
 
   .hero h1 {
