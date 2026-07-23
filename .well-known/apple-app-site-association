@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "H45P3DL8HR.com.splitsync.mobile",
-        "paths": ["/join", "/join/*"]
+        "paths": ["/join", "/join/*", "/bill-join", "/bill-join/*"]
       }
     ]
   }
