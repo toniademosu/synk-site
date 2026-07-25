@@ -41,11 +41,13 @@
 <footer><a href="/">synk.money</a></footer>
 
 <script>
-  // Supabase lands here with the recovery tokens (or an error) in the URL
-  // fragment. Forward the ENTIRE fragment into the app's reset screen —
-  // fragments never hit any server log.
+  // The reset email links here with ?token_hash=…&type=recovery — a token that
+  // is only CONSUMED inside the app (verifyOtp), so mail-scanner prefetches of
+  // this page burn nothing. Forward query AND fragment into the app (older
+  // emails carried #access_token fragments instead).
+  var qs = location.search || '';
   var hash = location.hash || '';
-  var deepLink = 'synk://reset-password' + hash;
+  var deepLink = 'synk://reset-password' + qs + hash;
   document.getElementById('openBtn').setAttribute('href', deepLink);
   if (hash.indexOf('error') !== -1) {
     document.getElementById('headline').textContent = 'This reset link has expired';
