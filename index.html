@@ -216,5 +216,12 @@
   </footer>
 </div>
 
+<script>
+  // Safety net: recovery emails sent by older app builds land on the homepage
+  // with Supabase tokens in the fragment — forward them to the reset hand-off.
+  if (location.hash.indexOf('type=recovery') !== -1 || location.hash.indexOf('error_code') !== -1) {
+    location.replace('/reset/' + location.hash);
+  }
+</script>
 </body>
 </html>
