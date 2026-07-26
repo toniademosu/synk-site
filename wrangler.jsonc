@@ -1,0 +1,12 @@
+// Cloudflare Workers config — lets the Git-connected Workers Build deploy
+// edge/worker.js (personalized invite previews) straight from this repo.
+// Routes are declared here too, so a deploy wires them automatically.
+{
+  "name": "synk-invites",
+  "main": "edge/worker.js",
+  "compatibility_date": "2026-07-26",
+  "routes": [
+    { "pattern": "synk.money/join*", "zone_name": "synk.money" },
+    { "pattern": "synk.money/bill-join*", "zone_name": "synk.money" }
+  ]
+}
