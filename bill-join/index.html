@@ -3,11 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Join a bill on Synk</title>
-<meta name="description" content="You've been invited to split a bill on Synk — tap to join it.">
-<meta property="og:title" content="Join a bill on Synk">
-<meta property="og:description" content="Tap to add yourself to the bill — split it fair, settle your way.">
-<meta property="og:image" content="https://synk.money/assets/icon.png">
+<title>You're invited to split a bill on Synk</title>
+<meta name="description" content="A friend added you to a bill on Synk. Tap to see it, claim your items, and pay your share your way.">
+<meta property="og:title" content="You're invited to split a bill">
+<meta property="og:description" content="Tap to see the bill and your share — pay free by bank, or instantly.">
+<meta property="og:image" content="https://synk.money/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0C0D11">
 <link rel="icon" type="image/png" href="/assets/logo-mark.png">
 <link rel="apple-touch-icon" href="/assets/icon.png">
@@ -57,8 +60,12 @@
 
 <img class="coin" src="/assets/logo-mark.png" alt="Synk">
 <span class="eyebrow">Bill invite</span>
-<h1>You're invited to split a bill</h1>
-<p class="sub">Tap below to open Synk and add yourself — claim your items, see your fair share, and settle up your way.</p>
+<h1 id="headline">You're invited to split a bill</h1>
+<p class="sub" id="sub">Tap below to open Synk and add yourself — claim your items, see your fair share, and settle up your way.</p>
+<div id="billCard" style="display:none; background:var(--panel,rgba(255,255,255,.04)); border:1px solid var(--hairline); border-radius:16px; padding:18px 28px; margin:0 0 32px; min-width:260px;">
+  <div id="billTitle" style="font-weight:700; font-size:18px;"></div>
+  <div id="billMeta" style="color:var(--subtext); font-size:14px; margin-top:6px;"></div>
+</div>
 
 <a class="pill" id="openBtn" href="#">Join in the app</a>
 <span class="secondary">Don't have Synk yet? <a href="mailto:hello@synk.money?subject=Synk%20beta%20invite">Get the app</a> — then tap your invite link again.</span>
@@ -74,6 +81,35 @@
   var btn = document.getElementById('openBtn');
   btn.setAttribute('href', deepLink);
   setTimeout(function () { location.href = deepLink; }, 600);
+
+  // Show the ACTUAL bill (title, total, who invited you) — this page is the
+  // product's first impression for people without the app, so it should sell.
+  // get_bill_invite_public_preview is anon-callable and token-gated; the anon
+  // key below is the public client key, safe to embed.
+  var SUPA = 'https://gswskgvhkfntpyjcdjtd.supabase.co';
+  var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdzd3NrZ3Zoa2ZudHB5amNkanRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMDQ4NjMsImV4cCI6MjA5NDg4MDg2M30.sPE4jFIhd60-KhkdWV8bDdP5I4QkCSOYtE5KENx9fNI';
+  if (/^[0-9a-f-]{36}$/i.test(t)) {
+    fetch(SUPA + '/rest/v1/rpc/get_bill_invite_public_preview', {
+      method: 'POST',
+      headers: { 'apikey': ANON, 'Authorization': 'Bearer ' + ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_token: t })
+    }).then(function (r) { return r.ok ? r.json() : null; }).then(function (b) {
+      if (!b || !b.title) return; // unknown/deleted bill: keep the generic copy
+      var esc = function (x) { return String(x); }; // textContent below — no HTML injection surface
+      document.getElementById('headline').textContent = b.organizerFirst
+        ? b.organizerFirst + ' invited you to split ' + esc(b.title)
+        : "You're invited to split " + esc(b.title);
+      var money = '';
+      try {
+        money = new Intl.NumberFormat(undefined, { style: 'currency', currency: b.currency || 'USD' }).format(Number(b.total || 0));
+      } catch (e) { money = '$' + Number(b.total || 0).toFixed(2); }
+      document.getElementById('billTitle').textContent = esc(b.title) + ' · ' + money;
+      document.getElementById('billMeta').textContent =
+        (b.participantCount || 1) + (b.participantCount === 1 ? ' person' : ' people') + ' on this bill — join to claim your share';
+      document.getElementById('billCard').style.display = 'block';
+      document.getElementById('sub').textContent = 'Open Synk to add yourself — claim your items, see your fair share, and pay your way.';
+    }).catch(function () { /* generic copy is the fallback */ });
+  }
 </script>
 
 </body>
