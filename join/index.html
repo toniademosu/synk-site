@@ -82,7 +82,8 @@
   btn.setAttribute('href', deepLink);
   // Auto-attempt once: if the app is installed the OS takes over; if not,
   // nothing happens and the visitor still has both buttons.
-  setTimeout(function () { location.href = deepLink; }, 600);
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) setTimeout(function () { location.href = deepLink; }, 600);
 </script>
 
 </body>

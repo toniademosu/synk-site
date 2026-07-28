@@ -80,7 +80,8 @@
   var deepLink = 'synk://bill-join' + (t ? ('?t=' + encodeURIComponent(t)) : '');
   var btn = document.getElementById('openBtn');
   btn.setAttribute('href', deepLink);
-  setTimeout(function () { location.href = deepLink; }, 600);
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) setTimeout(function () { location.href = deepLink; }, 600);
 
   // Show the ACTUAL bill (title, total, who invited you) — this page is the
   // product's first impression for people without the app, so it should sell.
