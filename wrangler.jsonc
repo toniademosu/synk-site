@@ -8,6 +8,7 @@
   "routes": [
     { "pattern": "synk.money/join*", "zone_name": "synk.money" },
     { "pattern": "synk.money/bill-join*", "zone_name": "synk.money" },
-    { "pattern": "synk.money/pay*", "zone_name": "synk.money" }
+    { "pattern": "synk.money/pay*", "zone_name": "synk.money" },
+    { "pattern": "synk.money/whereami", "zone_name": "synk.money" }
   ]
 }

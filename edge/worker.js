@@ -40,6 +40,18 @@ export default {
       });
     }
 
+    // Country lookup for SYNK's soft region verification. Cloudflare stamps
+    // every request with the caller's country — free, no external service.
+    if (url.pathname === '/whereami') {
+      return new Response(JSON.stringify({ country: request.cf?.country ?? null }), {
+        headers: {
+          'content-type': 'application/json',
+          'access-control-allow-origin': '*',
+          'cache-control': 'no-store',
+        },
+      });
+    }
+
     const origin = await fetch(request); // same-zone → GitHub Pages, no loop
 
     let meta = null;
