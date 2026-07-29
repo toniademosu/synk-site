@@ -7,6 +7,7 @@
   "compatibility_date": "2026-07-26",
   "routes": [
     { "pattern": "synk.money/join*", "zone_name": "synk.money" },
-    { "pattern": "synk.money/bill-join*", "zone_name": "synk.money" }
+    { "pattern": "synk.money/bill-join*", "zone_name": "synk.money" },
+    { "pattern": "synk.money/pay*", "zone_name": "synk.money" }
   ]
 }

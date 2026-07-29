@@ -20,6 +20,26 @@ const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 export default {
   async fetch(request) {
     const url = new URL(request.url);
+
+    // synk.money/pay — the guest payment page, served from our domain instead
+    // of the raw supabase.co URL (a payments page should look like ours,
+    // 2026-07-29). Proxies the bill-card edge fn; the page's own JS talks to
+    // supabase directly (CORS is open on those fns), so only the HTML rides
+    // through here.
+    if (url.pathname === '/pay' || url.pathname === '/pay/') {
+      const pool = url.searchParams.get('pool') || '';
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pool)) {
+        return new Response('Not found', { status: 404 });
+      }
+      const upstream = await fetch(`${SUPA}/functions/v1/bill-card?pool=${encodeURIComponent(pool)}`, {
+        cf: { cacheTtl: 30 },
+      });
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
     const origin = await fetch(request); // same-zone → GitHub Pages, no loop
 
     let meta = null;
