@@ -94,6 +94,10 @@
       <div class="field"><label for="acceptName">Name</label><input id="acceptName" type="text" required maxlength="40" autocomplete="name"></div>
       <div class="field"><label for="acceptEmail">Email</label><input id="acceptEmail" type="email" required autocomplete="email"></div>
       <div class="field"><label for="acceptPhone">Phone (optional)</label><input id="acceptPhone" type="tel" autocomplete="tel"></div>
+      <label class="accept-consent" style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;color:#9ca3af;text-align:left;">
+        <input type="checkbox" id="acceptSms" style="margin-top:3px;">
+        <span>Text me when it's time to pay<br><span style="font-size:11px;color:#6b7280;">Msg &amp; data rates may apply. Reply STOP to opt out.</span></span>
+      </label>
       <button type="submit" class="accept-submit">Count me in</button>
       <div id="acceptError" class="accept-error"></div>
     </form>
@@ -185,7 +189,8 @@
         p_token: t,
         p_name: document.getElementById('acceptName').value,
         p_email: document.getElementById('acceptEmail').value,
-        p_phone: document.getElementById('acceptPhone').value || null
+        p_phone: document.getElementById('acceptPhone').value || null,
+        p_sms_consent: document.getElementById('acceptSms').checked
       })
     }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok) {
