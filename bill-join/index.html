@@ -54,6 +54,29 @@
   .secondary a:hover { color: #f97316; }
   footer { position: fixed; bottom: 20px; color: var(--subtext); font-size: 12px; }
   footer a:hover { color: #f97316; }
+  .accept-wrap { width: 100%; max-width: 300px; margin: 4px auto 0; text-align: left; }
+  .accept-cta {
+    display: block; width: 100%; text-align: center; background: transparent;
+    border: 1px solid var(--hairline); color: #fff; padding: 13px 20px; border-radius: 999px;
+    font-weight: 700; font-size: 15px; font-family: inherit; cursor: pointer;
+    transition: border-color .15s ease;
+  }
+  .accept-cta:hover { border-color: #f97316; }
+  .accept-form { display: none; margin-top: 14px; }
+  .accept-form .field { margin-bottom: 12px; }
+  .accept-form label { display: block; font-size: 12px; color: var(--subtext); margin-bottom: 5px; font-weight: 600; }
+  .accept-form input {
+    width: 100%; background: rgba(255,255,255,.03); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 11px 14px; color: #fff; font-family: inherit; font-size: 14px;
+  }
+  .accept-form input:focus { outline: none; border-color: #f97316; }
+  .accept-submit {
+    width: 100%; margin-top: 2px; background: var(--grad); color: #fff; border: none;
+    padding: 13px 20px; border-radius: 999px; font-weight: 700; font-size: 15px; font-family: inherit; cursor: pointer;
+  }
+  .accept-submit:disabled { opacity: .6; cursor: default; }
+  .accept-error { display: none; color: #f43f5e; font-size: 13px; margin-top: 10px; }
+  .accept-success { font-size: 15px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -65,6 +88,16 @@
 <div id="billCard" style="display:none; background:var(--panel,rgba(255,255,255,.04)); border:1px solid var(--hairline); border-radius:16px; padding:18px 28px; margin:0 0 32px; min-width:260px;">
   <div id="billTitle" style="font-weight:700; font-size:18px;"></div>
   <div id="billMeta" style="color:var(--subtext); font-size:14px; margin-top:6px;"></div>
+  <div id="acceptWrap" class="accept-wrap" style="display:none;">
+    <button type="button" id="acceptCta" class="accept-cta">I'm in — keep me posted</button>
+    <form id="acceptForm" class="accept-form">
+      <div class="field"><label for="acceptName">Name</label><input id="acceptName" type="text" required maxlength="40" autocomplete="name"></div>
+      <div class="field"><label for="acceptEmail">Email</label><input id="acceptEmail" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="acceptPhone">Phone (optional)</label><input id="acceptPhone" type="tel" autocomplete="tel"></div>
+      <button type="submit" class="accept-submit">Count me in</button>
+      <div id="acceptError" class="accept-error"></div>
+    </form>
+  </div>
 </div>
 
 <a class="pill" id="openBtn" href="#">Join in the app</a>
@@ -109,6 +142,11 @@
         (b.participantCount || 1) + (b.participantCount === 1 ? ' person' : ' people') + ' on this bill — join to claim your share';
       document.getElementById('billCard').style.display = 'block';
       document.getElementById('sub').textContent = 'Open Synk to add yourself — claim your items, see your fair share, and pay your way.';
+      // Guest accept form (2026-07-30): only for bills still open — a closed
+      // (cancelled/settled) bill has nothing left to be counted in on.
+      if (b.status !== 'cancelled' && b.status !== 'settled') {
+        document.getElementById('acceptWrap').style.display = 'block';
+      }
       // One link, both paths (2026-07-28): once the bill is collecting, no-app
       // recipients can pay as guests in the browser instead of dead-ending at
       // "get the app".
@@ -121,6 +159,54 @@
       }
     }).catch(function () { /* generic copy is the fallback */ });
   }
+
+  // Guest accept: collapsed CTA expands to a small form that calls
+  // guest_accept_bill (same Supabase project + anon key as the preview
+  // fetch above). Idempotent on the server — re-submits with the same
+  // email just re-confirm rather than duplicating.
+  var acceptWrap = document.getElementById('acceptWrap');
+  var acceptCta = document.getElementById('acceptCta');
+  var acceptForm = document.getElementById('acceptForm');
+  var acceptError = document.getElementById('acceptError');
+  acceptCta.addEventListener('click', function () {
+    acceptCta.style.display = 'none';
+    acceptForm.style.display = 'block';
+  });
+  acceptForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    acceptError.style.display = 'none';
+    var submitBtn = acceptForm.querySelector('.accept-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Counting you in…';
+    fetch(SUPA + '/rest/v1/rpc/guest_accept_bill', {
+      method: 'POST',
+      headers: { 'apikey': ANON, 'Authorization': 'Bearer ' + ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_token: t,
+        p_name: document.getElementById('acceptName').value,
+        p_email: document.getElementById('acceptEmail').value,
+        p_phone: document.getElementById('acceptPhone').value || null
+      })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res && res.ok) {
+        acceptWrap.innerHTML = '';
+        var done = document.createElement('div');
+        done.className = 'accept-success';
+        done.textContent = 'You’re on “' + res.title + '” ✓ — we’ll email you when it’s ready to pay.';
+        acceptWrap.appendChild(done);
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Count me in';
+        acceptError.textContent = (res && res.error) || 'Something went wrong — try again.';
+        acceptError.style.display = 'block';
+      }
+    }).catch(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Count me in';
+      acceptError.textContent = 'Network error — try again.';
+      acceptError.style.display = 'block';
+    });
+  });
 </script>
 
 </body>
