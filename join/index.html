@@ -63,8 +63,8 @@
 <h1 id="headline">Join your friends on Synk</h1>
 <p class="sub">Split bills without the math, pool money for plans, and settle up your way — free from your bank, or instant.</p>
 
-<a class="pill" id="openBtn" href="#">Open in the app</a>
-<span class="secondary">Don't have Synk yet? <a href="https://testflight.apple.com/join/66DujTNq">Get the app on TestFlight</a> — then tap your invite link again.</span>
+<a class="pill" href="https://testflight.apple.com/join/66DujTNq">Get Synk free</a>
+<span class="secondary">Already have it? <a id="openBtn" href="#">Open in the app</a></span>
 
 <footer><a href="/">synk.money</a></footer>
 
@@ -80,10 +80,12 @@
   var deepLink = 'synk://join' + (ref ? ('?ref=' + encodeURIComponent(ref)) : '');
   var btn = document.getElementById('openBtn');
   btn.setAttribute('href', deepLink);
-  // Auto-attempt once: if the app is installed the OS takes over; if not,
-  // nothing happens and the visitor still has both buttons.
-  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile) setTimeout(function () { location.href = deepLink; }, 600);
+  // NO auto-attempt. Universal Links (see /.well-known/apple-app-site-association)
+  // already open the app directly when someone taps the invite from Messages,
+  // so anyone actually READING this page almost certainly does NOT have the app
+  // — and firing an unknown custom scheme at them makes Safari throw
+  // "the address is invalid" (tester report 2026-07-31). The scheme now runs
+  // only on a deliberate tap of the secondary "Open in the app" link.
 </script>
 
 </body>

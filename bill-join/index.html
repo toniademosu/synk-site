@@ -117,8 +117,10 @@
   var deepLink = 'synk://bill-join' + (t ? ('?t=' + encodeURIComponent(t)) : '');
   var btn = document.getElementById('openBtn');
   btn.setAttribute('href', deepLink);
-  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if (isMobile) setTimeout(function () { location.href = deepLink; }, 600);
+  // NO auto-attempt — Universal Links already open the app for people who have
+  // it, so a visitor reading this page probably doesn't, and firing an unknown
+  // scheme at them makes Safari throw "the address is invalid" (tester report
+  // 2026-07-31). The scheme runs only on a deliberate tap.
 
   // Show the ACTUAL bill (title, total, who invited you) — this page is the
   // product's first impression for people without the app, so it should sell.
