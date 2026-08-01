@@ -43,19 +43,42 @@
 <script>
   // The reset email links here with ?token_hash=…&type=recovery — a token that
   // is only CONSUMED inside the app (verifyOtp), so mail-scanner prefetches of
-  // this page burn nothing. Forward query AND fragment into the app (older
-  // emails carried #access_token fragments instead).
-  var qs = location.search || '';
+  // this page burn nothing.
+  //
+  // We forward ONLY token_hash and type, never the whole query string and never
+  // the fragment. This page used to pass location.search + location.hash
+  // through verbatim, which meant anyone could craft
+  // https://synk.money/reset#access_token=…&refresh_token=… — an ordinary https
+  // link on our own domain — and this page would hand that attacker-supplied
+  // session straight to the app, which accepted it. The app no longer honours
+  // the fragment; this stops us being the delivery vehicle for it either way.
+  function param(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(location.search || '');
+    return m ? m[1] : '';
+  }
+  var tokenHash = param('token_hash');
+  var type = param('type');
   var hash = location.hash || '';
-  var deepLink = 'synk://reset-password' + qs + hash;
+  var deepLink = 'synk://reset-password';
+  if (tokenHash) {
+    deepLink += '?token_hash=' + encodeURIComponent(decodeURIComponent(tokenHash));
+    if (type) deepLink += '&type=' + encodeURIComponent(decodeURIComponent(type));
+  }
   document.getElementById('openBtn').setAttribute('href', deepLink);
   if (hash.indexOf('error') !== -1) {
     document.getElementById('headline').textContent = 'This reset link has expired';
     document.getElementById('sub').textContent =
       'Reset links only work once and expire quickly. Open Synk and tap "Forgot password?" to get a fresh one.';
     document.getElementById('note').textContent = '';
-  } else {
+  } else if (tokenHash) {
     setTimeout(function () { location.href = deepLink; }, 600);
+  } else {
+    // No token to forward — an old-style fragment link, or someone poking at
+    // the page. Say so rather than bouncing into the app with nothing.
+    document.getElementById('headline').textContent = 'This reset link is no longer supported';
+    document.getElementById('sub').textContent =
+      'Open Synk and tap "Forgot password?" to get a fresh link.';
+    document.getElementById('note').textContent = '';
   }
 </script>
 
