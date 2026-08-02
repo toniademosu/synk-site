@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm your email — Synk</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0C0D11">
+<link rel="icon" type="image/png" href="/assets/logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0C0D11; --text:#fff; --subtext:#9ca3af; --hairline:rgba(255,255,255,.08);
+    --grad:linear-gradient(135deg,#f43f5e,#f97316); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text);
+    font-family:'Sora',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100svh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:32px 24px; }
+  a { text-decoration:none; color:inherit; }
+  .coin { width:88px; height:88px; margin-bottom:26px; }
+  h1 { font-size:clamp(24px,6vw,34px); font-weight:800; letter-spacing:-.01em; max-width:480px; }
+  p.sub { color:var(--subtext); font-size:15px; line-height:1.6; margin:14px 0 34px; max-width:420px; }
+  .pill { display:inline-block; background:var(--grad); color:#fff; padding:15px 40px;
+    border-radius:999px; font-weight:700; font-size:16px;
+    box-shadow:0 4px 24px rgba(244,63,94,.35); }
+  .note { display:block; margin-top:18px; color:var(--subtext); font-size:13px; max-width:380px; }
+  footer { position:fixed; bottom:20px; color:var(--subtext); font-size:12px; }
+</style>
+</head>
+<body>
+
+<img class="coin" src="/assets/logo-mark.png" alt="Synk">
+<h1 id="headline">Confirm your email</h1>
+<p class="sub" id="sub">Tap below to open Synk and finish setting up your account.</p>
+<a class="pill" id="openBtn" href="#">Open Synk</a>
+<span class="note" id="note">Opened this on a computer? Open the same email link on your iPhone instead — confirmation finishes inside the app.</span>
+
+<footer><a href="/">synk.money</a></footer>
+
+<script>
+  // Mirrors /reset. The confirmation email links here with
+  // ?token_hash=…&type=signup — a token that is only CONSUMED inside the app
+  // (verifyOtp), so a mail-scanner prefetching this page burns nothing. That is
+  // the whole reason we do not use Supabase's {{ .ConfirmationURL }}: it routes
+  // through the verify endpoint and hands back tokens in the URL FRAGMENT, which
+  // app/confirm.tsx cannot read (it takes query params) — and scanners were
+  // burning one-time tokens before the user ever tapped.
+  //
+  // Forward ONLY token_hash and type. Never the whole query string, never the
+  // fragment: /reset used to pass those through verbatim, which let anyone craft
+  // an ordinary https link on our own domain that handed the app an
+  // attacker-supplied session.
+  function param(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(location.search || '');
+    return m ? m[1] : '';
+  }
+  var tokenHash = param('token_hash');
+  var type = param('type') || 'signup';
+  var hash = location.hash || '';
+  var deepLink = 'synk://confirm';
+  if (tokenHash) {
+    deepLink += '?token_hash=' + encodeURIComponent(decodeURIComponent(tokenHash))
+             + '&type=' + encodeURIComponent(decodeURIComponent(type));
+  }
+  document.getElementById('openBtn').setAttribute('href', deepLink);
+
+  if (hash.indexOf('error') !== -1) {
+    document.getElementById('headline').textContent = 'This confirmation link has expired';
+    document.getElementById('sub').textContent =
+      'Confirmation links only work once and expire quickly. Open Synk and sign in to get a fresh one.';
+    document.getElementById('note').textContent = '';
+  } else if (tokenHash) {
+    setTimeout(function () { location.href = deepLink; }, 600);
+  } else {
+    document.getElementById('headline').textContent = 'This confirmation link is no longer supported';
+    document.getElementById('sub').textContent = 'Open Synk and sign in to get a fresh one.';
+    document.getElementById('note').textContent = '';
+  }
+</script>
+
+</body>
+</html>
