@@ -145,12 +145,46 @@
 
   @media (max-width: 820px) {
     .steps { grid-template-columns: 1fr; }
+    .use-grid { grid-template-columns: 1fr; }
     .feature { grid-template-columns: 1fr; gap: 40px; }
     .vcard { max-width: 380px; margin: 0 auto; }
   }
   @media (prefers-reduced-motion: reduce) {
     .coin-left, .coin-right, .coin-glow, .hero h1, .hero p.sub, .hero .cta-row { animation: none; }
   }
+
+  /* ---- Use cases: the "when would I reach for this" section. The page
+     explained HOW it works but never WHEN, so a visitor had to infer the
+     product's occasions for themselves. ---- */
+  .uses { padding-bottom: 96px; }
+  .uses .lede { max-width: 640px; margin-bottom: 34px; }
+  .uses h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
+  .uses .lede p { color: var(--subtext); font-size: 16px; line-height: 1.65; }
+  .use-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .use {
+    background: var(--panel); border: 1px solid var(--hairline); border-radius: 20px;
+    padding: 24px 22px; transition: border-color .2s ease, transform .2s ease;
+  }
+  .use:hover { border-color: rgba(244,63,94,.35); transform: translateY(-2px); }
+  .use .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--subtext); margin-bottom: 10px;
+  }
+  .use h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .use p { color: var(--subtext); font-size: 14px; line-height: 1.6; }
+  .use .grad-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 999px;
+    background: var(--grad); margin-right: 8px; vertical-align: middle;
+  }
+
+  /* ---- Closing CTA. Every call to action lived above the fold, so anyone who
+     actually read the page had nothing to tap at the end of it. ---- */
+  .closer {
+    text-align: center; padding: 72px 24px 96px;
+    border-top: 1px solid var(--hairline);
+  }
+  .closer h2 { font-size: clamp(26px, 4.5vw, 40px); font-weight: 800; letter-spacing: -.02em; margin-bottom: 14px; }
+  .closer p { color: var(--subtext); font-size: 16px; max-width: 460px; margin: 0 auto 28px; line-height: 1.65; }
 </style>
 </head>
 <body>
@@ -175,6 +209,55 @@
       <span class="cta-note">iPhone · private beta — coming to the App&nbsp;Store</span>
     </div>
   </header>
+
+
+  <section class="uses">
+    <div class="lede">
+      <h2>Made for the bills you<br>already share.</h2>
+      <p>Rent, the weekly shop, a table for eight, a trip everyone keeps meaning to book.
+        Anywhere money is shared, someone ends up out of pocket and chasing it. Synk collects
+        it up front instead.</p>
+    </div>
+
+    <div class="use-grid">
+      <div class="use">
+        <span class="tag"><span class="grad-dot"></span>Every month</span>
+        <h3>Rent &amp; house bills</h3>
+        <p>Set it once and it repeats. Everyone's share is collected on the same day, so nobody
+          is fronting the landlord and waiting.</p>
+      </div>
+      <div class="use">
+        <span class="tag"><span class="grad-dot"></span>Before you go</span>
+        <h3>Trips &amp; weekends away</h3>
+        <p>Pool the money first, then spend it from one shared card. No one carries the booking
+          on their own credit card for a month.</p>
+      </div>
+      <div class="use">
+        <span class="tag"><span class="grad-dot"></span>At the table</span>
+        <h3>Dinner &amp; drinks</h3>
+        <p>Scan the receipt, everyone taps what they had. Shared plates split themselves and the
+          odd penny never lands on one person.</p>
+      </div>
+      <div class="use">
+        <span class="tag"><span class="grad-dot"></span>Every week</span>
+        <h3>The big shop</h3>
+        <p>One person pays at the till. Synk reads the receipt line by line, so the flatmate who
+          skipped the wine isn't paying for it.</p>
+      </div>
+      <div class="use">
+        <span class="tag"><span class="grad-dot"></span>Together</span>
+        <h3>Gifts &amp; group funds</h3>
+        <p>Collect toward a number. Everyone can see what's in and what's left, without one
+          person keeping a tally in their notes app.</p>
+      </div>
+      <div class="use">
+        <span class="tag"><span class="grad-dot"></span>Shared plans</span>
+        <h3>Subscriptions</h3>
+        <p>The streaming account, the family plan, the gym. Split the recurring ones once and
+          stop reminding people.</p>
+      </div>
+    </div>
+  </section>
 
   <section class="steps">
     <div class="step">
@@ -208,6 +291,14 @@
         virtual card the group spends together — with every swipe posted to the pool feed.</p>
       <p>Cancel anytime and everyone gets their share back automatically, in proportion to what they put in.</p>
     </div>
+  </section>
+
+
+  <section class="closer">
+    <h2>Stop being the one<br>who chases everyone.</h2>
+    <p>Synk is in private beta on iPhone. Split a bill with your people and see how much
+      shorter the group chat gets.</p>
+    <a class="pill cta-big" href="https://testflight.apple.com/join/66DujTNq">Get the app</a>
   </section>
 
   <footer>
