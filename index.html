@@ -74,8 +74,8 @@
 
      TO TURN ON, one change:
          <header class="hero has-photo">
-     Images: /assets/hero-people-laughing.jpg?v=2 (wide) and
-     /assets/hero-people-portrait.jpg?v=2 (phones, see the media query below).
+     Images: /assets/hero-people-laughing.jpg?v=3 (wide) and
+     /assets/hero-people-portrait.jpg?v=3 (phones, see the media query below).
 
      Everything is scoped under .has-photo because the first version keyed off a
      `--hero-img: none` custom property, which was wrong — the tint and fade
@@ -91,7 +91,7 @@
   }
   .hero.has-photo .hero-bg::before {
     content: ''; position: absolute; inset: 0;
-    background-image: url('/assets/hero-people-laughing.jpg?v=2');
+    background-image: url('/assets/hero-people-laughing.jpg?v=3');
     background-size: cover; background-position: 50% 44%;
     /* Tuned against the real photograph, which is a genuinely dark candlelit
        scene. The first pass (grayscale .72 / brightness .6 / opacity .55) was
@@ -120,7 +120,7 @@
      and below iPad mini's 768. */
   @media (max-width: 700px) {
     .hero.has-photo .hero-bg::before {
-      background-image: url('/assets/hero-people-portrait.jpg?v=2');
+      background-image: url('/assets/hero-people-portrait.jpg?v=3');
       background-position: 50% 40%;
       /* Taller mask to match a taller frame. */
       -webkit-mask-image: radial-gradient(ellipse 96% 74% at 50% 42%, #000 40%, transparent 82%);
