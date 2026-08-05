@@ -74,8 +74,8 @@
 
      TO TURN ON, one change:
          <header class="hero has-photo">
-     Images: /assets/hero-people-laughing.jpg (wide) and
-     /assets/hero-people-portrait.jpg (phones, see the media query below).
+     Images: /assets/hero-people-laughing.jpg?v=2 (wide) and
+     /assets/hero-people-portrait.jpg?v=2 (phones, see the media query below).
 
      Everything is scoped under .has-photo because the first version keyed off a
      `--hero-img: none` custom property, which was wrong — the tint and fade
@@ -91,7 +91,7 @@
   }
   .hero.has-photo .hero-bg::before {
     content: ''; position: absolute; inset: 0;
-    background-image: url('/assets/hero-people-laughing.jpg');
+    background-image: url('/assets/hero-people-laughing.jpg?v=2');
     background-size: cover; background-position: 50% 44%;
     /* Tuned against the real photograph, which is a genuinely dark candlelit
        scene. The first pass (grayscale .72 / brightness .6 / opacity .55) was
@@ -120,7 +120,7 @@
      and below iPad mini's 768. */
   @media (max-width: 700px) {
     .hero.has-photo .hero-bg::before {
-      background-image: url('/assets/hero-people-portrait.jpg');
+      background-image: url('/assets/hero-people-portrait.jpg?v=2');
       background-position: 50% 40%;
       /* Taller mask to match a taller frame. */
       -webkit-mask-image: radial-gradient(ellipse 96% 74% at 50% 42%, #000 40%, transparent 82%);
@@ -185,21 +185,54 @@
     padding-bottom: 112px;
   }
   .vcard {
-    aspect-ratio: 1.586; border-radius: 22px; position: relative; overflow: hidden;
-    background: var(--grad);
-    box-shadow: 0 24px 64px rgba(244,63,94,.28);
+    aspect-ratio: 1.6; border-radius: 20px; position: relative; overflow: hidden;
+    background: #0a0a0d;
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 24px 64px rgba(244,63,94,.22);
     transform: rotate(-3deg);
-    padding: 26px; display: flex; flex-direction: column; justify-content: space-between;
+    padding: 20px; display: flex; flex-direction: column; justify-content: space-between;
+    gap: 12px;
   }
+  /* base tint: accent at 24% into near-black, top-left to bottom-right */
+  .vcard::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(244,63,94,.24), #0a0a0d 58%);
+  }
+  /* glow orb in the top-right corner, the card's signature */
   .vcard::after {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(120deg, rgba(255,255,255,.28), transparent 42%);
+    background: linear-gradient(196deg, rgba(249,115,22,.42), transparent 46%);
   }
-  .vcard .vc-top { display: flex; justify-content: space-between; align-items: center; }
-  .vcard .vc-brand { font-weight: 800; letter-spacing: .06em; font-size: 18px; }
-  .vcard .vc-chip { width: 38px; height: 27px; border-radius: 6px; background: rgba(255,255,255,.35); }
-  .vcard .vc-num { font-size: 17px; letter-spacing: .18em; font-weight: 600; }
-  .vcard .vc-bottom { display: flex; justify-content: space-between; font-size: 12px; opacity: .9; font-weight: 600; }
+  .vcard > * { position: relative; z-index: 1; }
+  .vcard .vc-top { display: flex; align-items: center; gap: 10px; }
+  .vcard .vc-chip {
+    width: 30px; height: 22px; border-radius: 5px; flex: none;
+    background: linear-gradient(150deg, #e8c87a, #d9b25f 55%, #b8934a);
+  }
+  .vcard .vc-label {
+    flex: 1; color: rgba(255,255,255,.85); font-size: 12px;
+    font-weight: 700; letter-spacing: 1px;
+  }
+  .vcard .vc-test {
+    background: rgba(255,255,255,.15); border-radius: 6px; padding: 2px 6px;
+    font-size: 9px; font-weight: 700; letter-spacing: .5px;
+  }
+  /* contactless glyph — the app draws an ion-icon "wifi" rotated 90deg */
+  .vcard .vc-wave { width: 18px; height: 18px; flex: none; opacity: .8; }
+  .vcard .vc-num { font-size: 20px; letter-spacing: 1px; font-weight: 700; }
+  .vcard .vc-track {
+    height: 5px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden;
+  }
+  .vcard .vc-fill { height: 100%; width: 68%; border-radius: 99px; background: var(--grad); }
+  .vcard .vc-bottom { display: flex; align-items: flex-end; gap: 16px; }
+  .vcard .vc-meta-label {
+    color: rgba(255,255,255,.6); font-size: 9px; font-weight: 700; letter-spacing: .5px;
+  }
+  .vcard .vc-balance { font-size: 22px; font-weight: 700; letter-spacing: -.5px; margin-top: 1px; }
+  .vcard .vc-sub { color: rgba(255,255,255,.6); font-size: 12px; margin-top: 2px; }
+  .vcard .vc-right { display: flex; align-items: flex-end; gap: 16px; margin-left: auto; }
+  .vcard .vc-meta-value { font-size: 14px; font-weight: 700; }
+  .vcard .vc-brand { font-size: 18px; font-weight: 700; font-style: italic; }
   .feature h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin-bottom: 16px; line-height: 1.2; }
   .feature p { color: var(--subtext); font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
 
@@ -350,9 +383,31 @@
   <section class="feature">
     <div>
       <div class="vcard">
-        <div class="vc-top"><span class="vc-brand">SYNK</span><span class="vc-chip"></span></div>
+        <div class="vc-top">
+          <span class="vc-chip"></span>
+          <span class="vc-label">POOL CARD</span>
+          <span class="vc-test">TEST</span>
+          <svg class="vc-wave" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true">
+            <path d="M8 4a11 11 0 0 1 0 16M13 7a7 7 0 0 1 0 10M18 10a3 3 0 0 1 0 4"/>
+          </svg>
+        </div>
         <div class="vc-num">•••• •••• •••• 0925</div>
-        <div class="vc-bottom"><span>MIAMI TRIP</span><span>POOL CARD</span></div>
+        <div class="vc-track"><div class="vc-fill"></div></div>
+        <div class="vc-bottom">
+          <div>
+            <div class="vc-meta-label">BALANCE</div>
+            <div class="vc-balance">$1,360.00</div>
+            <div class="vc-sub">of $2,000.00 · 68%</div>
+          </div>
+          <div class="vc-right">
+            <div>
+              <div class="vc-meta-label">EXP</div>
+              <div class="vc-meta-value">09/29</div>
+            </div>
+            <span class="vc-brand">Visa</span>
+          </div>
+        </div>
       </div>
     </div>
     <div>
