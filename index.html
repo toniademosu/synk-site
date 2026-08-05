@@ -25,6 +25,7 @@
     --rose: #f43f5e;
     --orange: #f97316;
     --grad: linear-gradient(135deg, #f43f5e, #f97316);
+
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -61,6 +62,74 @@
     background: radial-gradient(ellipse at 50% 0%, rgba(244,63,94,.14), transparent 62%);
     pointer-events: none;
   }
+
+  /* ---------- hero photo wash — OFF until a photo exists ----------
+     A photograph behind the headline, treated so it reads as atmosphere rather
+     than as a picture: desaturated and darkened, masked to an ellipse so it has
+     no edge to notice, warmed with the brand gradient, and faded into the page
+     background before it reaches the copy. The text never sits on raw image, so
+     contrast holds no matter which photo goes in. It bleeds past .wrap on
+     purpose — a full-width wash reads as lighting, a centred 1040px rectangle
+     reads as a banner ad.
+
+     TO TURN ON, one change:
+         <header class="hero has-photo">
+     Images: /assets/hero-people-laughing.jpg (wide) and
+     /assets/hero-people-portrait.jpg (phones, see the media query below).
+
+     Everything is scoped under .has-photo because the first version keyed off a
+     `--hero-img: none` custom property, which was wrong — the tint and fade
+     layers paint whether or not the image layer resolves, so the live page
+     picked up a warm cast with no photo present. Rendering it side by side
+     against the committed original is what caught that. With the class absent,
+     nothing here paints at all. */
+  .hero-bg { display: none; }
+  .hero.has-photo .hero-bg {
+    display: block;
+    position: absolute; inset: -140px calc(50% - 50vw) -40px;
+    z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .hero.has-photo .hero-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: url('/assets/hero-people-laughing.jpg');
+    background-size: cover; background-position: 50% 44%;
+    /* Tuned against the real photograph, which is a genuinely dark candlelit
+       scene. The first pass (grayscale .72 / brightness .6 / opacity .55) was
+       set against a brighter placeholder and crushed this one to an
+       indistinguishable haze — you could not tell there were people in it.
+       Keeping some of the candlelight also helps: its amber is already the
+       brand's orange, so it works with the tint rather than against it. */
+    filter: grayscale(.34) contrast(1.04) brightness(1.02);
+    opacity: .85;
+    -webkit-mask-image: radial-gradient(ellipse 78% 88% at 50% 44%, #000 36%, transparent 80%);
+            mask-image: radial-gradient(ellipse 78% 88% at 50% 44%, #000 36%, transparent 80%);
+  }
+  .hero.has-photo .hero-bg::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      /* melt into the page before the copy starts */
+      linear-gradient(to bottom, rgba(12,13,17,.04) 0%, rgba(12,13,17,.58) 56%, var(--bg) 93%),
+      /* brand warmth — deliberately not mix-blend-mode, which renders
+         inconsistently over a masked layer in some browsers */
+      linear-gradient(135deg, rgba(244,63,94,.20), rgba(249,115,22,.16));
+  }
+  /* Art direction, not just scaling: at phone widths the landscape frame gets
+     cropped to its middle third, which discards the two figures that flank the
+     headline and leaves an empty table. A portrait crop of the same scene keeps
+     the composition intact where it is seen most. 700px sits above every phone
+     and below iPad mini's 768. */
+  @media (max-width: 700px) {
+    .hero.has-photo .hero-bg::before {
+      background-image: url('/assets/hero-people-portrait.jpg');
+      background-position: 50% 40%;
+      /* Taller mask to match a taller frame. */
+      -webkit-mask-image: radial-gradient(ellipse 96% 74% at 50% 42%, #000 40%, transparent 82%);
+              mask-image: radial-gradient(ellipse 96% 74% at 50% 42%, #000 40%, transparent 82%);
+    }
+  }
+
+  .hero.has-photo::before { z-index: 0; }
+  .hero.has-photo > *:not(.hero-bg) { position: relative; z-index: 1; }
 
   /* the synk gesture: two coin halves slide together, settle, glow */
   .coin-stage { position: relative; width: 132px; height: 132px; margin: 0 auto 36px; }
@@ -195,7 +264,8 @@
     <a class="pill" href="https://testflight.apple.com/join/66DujTNq">Get the app</a>
   </nav>
 
-  <header class="hero">
+  <header class="hero has-photo">
+    <div class="hero-bg" aria-hidden="true"></div>
     <div class="coin-stage" aria-hidden="true">
       <div class="coin-glow"></div>
       <div class="coin-half coin-left"><img src="/assets/logo-mark.png" alt=""></div>
