@@ -233,6 +233,48 @@
   .vcard .vc-right { display: flex; align-items: flex-end; gap: 16px; margin-left: auto; }
   .vcard .vc-meta-value { font-size: 14px; font-weight: 700; }
   .vcard .vc-brand { font-size: 18px; font-weight: 700; font-style: italic; }
+  /* ---------- app screenshots ----------
+     The hero photograph cannot do this job: at 1280px the phone in it sits
+     behind the sub-copy and inside the bottom fade, and on a phone it is a
+     sliver. Rendered and checked — it reads as "someone holding a phone", never
+     as "here is the interface". So the interface gets its own section, at a
+     size where it is actually legible. */
+  .shots { padding-bottom: 104px; }
+  .shots-head { text-align: center; max-width: 620px; margin: 0 auto 44px; }
+  .shots-head h2 {
+    font-size: clamp(26px, 4vw, 36px); font-weight: 800;
+    letter-spacing: -.02em; margin-bottom: 12px; text-wrap: balance;
+  }
+  .shots-head p { color: var(--subtext); font-size: 16px; line-height: 1.65; }
+  .shots-row {
+    display: flex; justify-content: center; align-items: flex-start;
+    gap: clamp(20px, 5vw, 64px); flex-wrap: wrap;
+  }
+  .shot { width: 236px; }
+  /* Device frame: a hairline bezel and a warm accent glow, so the screenshot
+     reads as a phone rather than a floating rectangle. */
+  .phone {
+    position: relative; border-radius: 30px; padding: 7px;
+    background: linear-gradient(150deg, #2a2b31, #131418 55%, #26272c);
+    box-shadow:
+      0 28px 70px rgba(0,0,0,.55),
+      0 0 60px rgba(244,63,94,.14);
+  }
+  .phone img {
+    display: block; width: 100%; border-radius: 24px;
+    background: #0a0a0d;
+  }
+  /* speaker slot */
+  .phone::after {
+    content: ''; position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+    width: 52px; height: 5px; border-radius: 99px; background: rgba(0,0,0,.55);
+  }
+  .shot figcaption {
+    margin-top: 18px; text-align: center;
+  }
+  .shot .cap-t { font-size: 15px; font-weight: 700; }
+  .shot .cap-d { color: var(--subtext); font-size: 13.5px; line-height: 1.55; margin-top: 5px; }
+
   .feature h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin-bottom: 16px; line-height: 1.2; }
   .feature p { color: var(--subtext); font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
 
@@ -247,6 +289,7 @@
 
   @media (max-width: 820px) {
     .steps { grid-template-columns: 1fr; }
+    .shot { width: min(236px, 62vw); }
     .use-grid { grid-template-columns: 1fr; }
     .feature { grid-template-columns: 1fr; gap: 40px; }
     .vcard { max-width: 380px; margin: 0 auto; }
@@ -377,6 +420,30 @@
       <span class="num">3</span>
       <h3>Settle your way</h3>
       <p>Pay from your bank for free, or instantly with a card. Everyone sees exactly who's in and what's left.</p>
+    </div>
+  </section>
+
+  <section class="shots">
+    <div class="shots-head">
+      <h2>This is the whole app</h2>
+      <p>No dashboard to learn. Open it and you can see what you owe, what you are owed,
+        and where the money actually went.</p>
+    </div>
+    <div class="shots-row">
+      <figure class="shot">
+        <div class="phone"><img src="/assets/shot-home.jpg" alt="The Synk home screen, showing a running balance of what you are owed and quick actions to split a bill or start a pool." width="472" height="1026" loading="lazy"></div>
+        <figcaption>
+          <div class="cap-t">Know where you stand</div>
+          <div class="cap-d">One number for what you are owed, one for what you owe. No spreadsheet.</div>
+        </figcaption>
+      </figure>
+      <figure class="shot">
+        <div class="phone"><img src="/assets/shot-spending.jpg" alt="The Synk spending screen, showing total spent, number of bills, average per bill and a breakdown by category." width="472" height="1026" loading="lazy"></div>
+        <figcaption>
+          <div class="cap-t">See where it actually went</div>
+          <div class="cap-d">Every bill you have paid, totalled and grouped by category.</div>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
