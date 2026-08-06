@@ -44,6 +44,11 @@
   nav {
     display: flex; align-items: center; justify-content: space-between;
     padding: 20px 0;
+    /* Above the hero wash. .hero-bg starts 140px above the hero to bleed behind
+       the nav, and it is positioned with z-index 0 — so against an unpositioned
+       nav it won the paint order and washed out the wordmark and the CTA pill.
+       Visible on device as a greyed-out "Synk" and a muted "Get the app". */
+    position: relative; z-index: 2;
   }
   .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 21px; letter-spacing: .02em; }
   .nav-brand img { width: 42px; height: 42px; }
@@ -170,6 +175,7 @@
   .step {
     background: var(--panel); border: 1px solid var(--hairline); border-radius: 20px;
     padding: 28px 24px;
+      min-width: 0;
   }
   .step .num {
     display: inline-flex; align-items: center; justify-content: center;
@@ -261,7 +267,11 @@
       0 0 60px rgba(244,63,94,.14);
   }
   .phone img {
-    display: block; width: 100%; border-radius: 24px;
+    /* height:auto is load-bearing. The <img> carries width/height attributes so
+       the browser can reserve space before the file arrives; without this the
+       attribute pins the height at 1026px while width scales to 236px, and the
+       screenshot renders vertically stretched. */
+    display: block; width: 100%; height: auto; border-radius: 24px;
     background: #0a0a0d;
   }
   /* speaker slot */
@@ -287,13 +297,6 @@
   footer a { color: var(--text); }
   footer a:hover { color: var(--orange); }
 
-  @media (max-width: 820px) {
-    .steps { grid-template-columns: 1fr; }
-    .shot { width: min(236px, 62vw); }
-    .use-grid { grid-template-columns: 1fr; }
-    .feature { grid-template-columns: 1fr; gap: 40px; }
-    .vcard { max-width: 380px; margin: 0 auto; }
-  }
   @media (prefers-reduced-motion: reduce) {
     .coin-left, .coin-right, .coin-glow, .hero h1, .hero p.sub, .hero .cta-row { animation: none; }
   }
@@ -309,6 +312,7 @@
   .use {
     background: var(--panel); border: 1px solid var(--hairline); border-radius: 20px;
     padding: 24px 22px; transition: border-color .2s ease, transform .2s ease;
+      min-width: 0;
   }
   .use:hover { border-color: rgba(244,63,94,.35); transform: translateY(-2px); }
   .use .tag {
@@ -330,6 +334,21 @@
   }
   .closer h2 { font-size: clamp(26px, 4.5vw, 40px); font-weight: 800; letter-spacing: -.02em; margin-bottom: 14px; }
   .closer p { color: var(--subtext); font-size: 16px; max-width: 460px; margin: 0 auto 28px; line-height: 1.65; }
+  /* ---------- responsive ----------
+     Kept LAST on purpose. These overrides are plain class selectors, so any
+     rule of equal specificity declared below would silently beat them —
+     which is exactly what happened: .use-grid's 3-column rule sat further
+     down the sheet, the cards never stacked on a phone, and the resulting
+     horizontal overflow stopped the 100vw hero from reaching the right
+     edge. Add new breakpoints here, not above. */
+  @media (max-width: 820px) {
+    .steps { grid-template-columns: 1fr; }
+    .shot { width: min(236px, 62vw); }
+    .use-grid { grid-template-columns: 1fr; }
+    .feature { grid-template-columns: 1fr; gap: 40px; }
+    .vcard { max-width: 380px; margin: 0 auto; }
+  }
+
 </style>
 </head>
 <body>
