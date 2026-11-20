@@ -15,6 +15,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // Scroll motion is opt-in: without JS, or with reduced motion on, nothing is
+  // ever hidden and the page reads as a normal static document.
+  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+    document.documentElement.className = 'js';
+</script>
 <style>
   :root {
     --bg: #0C0D11;
@@ -34,27 +40,28 @@
     color: var(--text);
     font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
+    overflow-x: hidden; overflow-x: clip;
   }
   a { color: inherit; text-decoration: none; }
+  [hidden] { display: none !important; }
 
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: max(1040px, min(84vw, 1560px)); margin: 0 auto; padding: 0 clamp(20px, 2.6vw, 44px); }
 
   /* ---------- nav ---------- */
   nav {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 0;
+    padding: clamp(18px, 1.6vw, 30px) 0;
     /* Above the hero wash. .hero-bg starts 140px above the hero to bleed behind
        the nav, and it is positioned with z-index 0 — so against an unpositioned
        nav it won the paint order and washed out the wordmark and the CTA pill.
        Visible on device as a greyed-out "Synk" and a muted "Get the app". */
     position: relative; z-index: 2;
   }
-  .nav-brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 21px; letter-spacing: .02em; }
-  .nav-brand img { width: 42px; height: 42px; }
+  .nav-brand { display: flex; align-items: center; gap: clamp(12px, 1vw, 18px); font-weight: 700; font-size: clamp(23px, 1vw + 12px, 32px); letter-spacing: .03em; }
+  .nav-brand img { width: clamp(48px, 2.2vw + 24px, 68px); height: auto; aspect-ratio: 1; }
   .pill {
     display: inline-block; background: var(--grad); color: #fff;
-    padding: 10px 22px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    padding: .72em 1.55em; border-radius: 999px; font-weight: 600; font-size: clamp(14px, .95vw, 17px);
     transition: transform .15s ease, box-shadow .15s ease;
     box-shadow: 0 4px 24px rgba(244,63,94,.35);
   }
@@ -136,29 +143,140 @@
   .hero.has-photo::before { z-index: 0; }
   .hero.has-photo > *:not(.hero-bg) { position: relative; z-index: 1; }
 
-  /* the synk gesture: two coin halves slide together, settle, glow */
-  .coin-stage { position: relative; width: 132px; height: 132px; margin: 0 auto 36px; }
-  /* (settle animation for .coin-stage defined below with the halves) */
+  /* the synk gesture: two coin halves slide together. It used to open the
+     page; it now plays when the demo bill is fully claimed — the moment the
+     gesture actually stands for. Halves land exactly at center (no overshoot —
+     they must never cross). */
+  .mini-coin { position: relative; width: 26px; height: 26px; flex: none; display: none; }
   .coin-half { position: absolute; inset: 0; }
-  .coin-half img { width: 132px; height: 132px; display: block; }
-  /* halves land exactly at center (no overshoot — they must never cross),
-     then the assembled coin does one clean settle pulse */
-  .coin-left  { clip-path: inset(0 50% 0 0); animation: fromLeft  .8s cubic-bezier(.22,.8,.3,1) both; }
-  .coin-right { clip-path: inset(0 0 0 50%); animation: fromRight .8s cubic-bezier(.22,.8,.3,1) both; }
-  .coin-stage { animation: settle .5s ease .82s both; }
-  .coin-glow {
-    position: absolute; inset: -28px;
-    background: radial-gradient(circle, rgba(249,115,22,.35), transparent 65%);
-    opacity: 0; animation: glowIn .8s ease .82s both;
+  .coin-half img { width: 100%; height: 100%; display: block; }
+  .coin-left  { clip-path: inset(0 50% 0 0); }
+  .coin-right { clip-path: inset(0 0 0 50%); }
+  .demo-status.done .mini-coin { display: block; }
+  .demo-status.done .coin-left  { animation: fromLeft  .6s cubic-bezier(.22,.8,.3,1) both; }
+  .demo-status.done .coin-right { animation: fromRight .6s cubic-bezier(.22,.8,.3,1) both; }
+  @keyframes fromLeft  { from { transform: translateX(-14px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fromRight { from { transform: translateX(14px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ---------- hero demo: a receipt you can split ----------
+     Person colours: You carries the brand; the other three are picked to stay
+     distinguishable from each other on both the dark page and the pale paper. */
+  :root {
+    --you: #f43f5e; --maya: #10b981; --dev: #3b82f6; --sam: #d97706;
+    --paper: #f3f3ef; --ink: #17181d; --ink-soft: #6b6e78;
   }
-  @keyframes fromLeft  { from { transform: translateX(-56px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  @keyframes fromRight { from { transform: translateX(56px);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  @keyframes settle { 0% { transform: scale(1); } 40% { transform: scale(1.045); } 100% { transform: scale(1); } }
-  @keyframes glowIn { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
+  .demo {
+    margin-top: 56px; animation: rise .7s ease .8s both;
+  }
+  .demo-hint { color: var(--subtext); font-size: 14px; margin-bottom: 18px; }
+  .stage { perspective: 1200px; }
+  .stage-inner { position: relative; max-width: 340px; margin: 0 auto; }
+
+  /* people: the selector AND the live result — tap one to claim as them */
+  .people { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+  .person {
+    --c: var(--you);
+    font: inherit; color: var(--text); cursor: pointer; text-align: center;
+    background: rgba(20,21,27,.82); border: 1px solid var(--hairline); border-radius: 16px;
+    padding: 10px 4px 9px; min-width: 0;
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .person .av {
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 999px; margin: 0 auto 6px;
+    background: var(--c); font-size: 13px; font-weight: 700; color: #fff;
+  }
+  .person[data-id="you"] .av { background: var(--grad); }
+  .person .nm { display: block; font-size: 12px; color: var(--subtext); }
+  .person .amt { display: block; font-size: 15px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .person[aria-pressed="true"] {
+    border-color: var(--c); background: rgba(28,29,36,.94);
+    box-shadow: 0 0 0 1px var(--c), 0 10px 34px color-mix(in srgb, var(--c) 34%, transparent);
+  }
+  .person[aria-pressed="true"] .nm { color: var(--text); }
+  .person:focus-visible, .r-item:focus-visible, .demo-reset:focus-visible, .chip-in:focus-visible {
+    outline: 2px solid var(--orange); outline-offset: 2px;
+  }
+
+  /* the receipt: a pale paper object on the dark page */
+  .receipt {
+    position: relative; background: var(--paper); color: var(--ink); text-align: left;
+    border-radius: 6px 6px 0 0; padding: 20px 16px 14px;
+    box-shadow: 0 30px 70px rgba(0,0,0,.55), 0 0 70px rgba(244,63,94,.16);
+  }
+  /* torn bottom edge */
+  .receipt::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 9px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0 / 12px 9px repeat-x,
+      linear-gradient(225deg, var(--paper) 50%, transparent 50%) 0 0 / 12px 9px repeat-x;
+  }
+  .r-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 6px 12px; border-bottom: 1px dashed rgba(23,24,29,.25); }
+  .r-title { font-weight: 700; font-size: 16px; }
+  .r-ex { font-size: 11.5px; color: var(--ink-soft); }
+  .r-items { list-style: none; padding: 6px 0; }
+  .r-item {
+    --c: transparent;
+    font: inherit; color: inherit; cursor: pointer; width: 100%; text-align: left;
+    display: grid; grid-template-columns: 1fr auto; column-gap: 10px; align-items: center;
+    background: transparent; border: 0; border-radius: 10px; padding: 8px 6px; min-height: 44px;
+    transition: background .18s ease;
+  }
+  .r-item:hover { background: rgba(23,24,29,.05); }
+  .r-item.mine { background: color-mix(in srgb, var(--c) 16%, transparent); }
+  .r-item .nm { font-size: 14px; font-weight: 600; }
+  .r-item .pr { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .r-item .who { grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11.5px; color: var(--ink-soft); min-height: 14px; }
+  .r-item .dot { width: 10px; height: 10px; border-radius: 99px; flex: none; }
+  .r-item .dot[data-id="you"] { background: var(--grad); }
+  .r-item.open .who { color: #b4232f; font-weight: 600; }
+  .r-totals { border-top: 1px dashed rgba(23,24,29,.25); padding: 10px 6px 0; font-size: 13px; color: var(--ink-soft); }
+  .r-totals > div { display: flex; justify-content: space-between; padding: 2px 0; font-variant-numeric: tabular-nums; }
+  .r-totals .r-total { color: var(--ink); font-weight: 800; font-size: 16px; padding-top: 6px; }
+
+  .demo-status {
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 30px; min-height: 28px; font-size: 14px; color: var(--subtext);
+  }
+  .demo-status.done { color: var(--text); font-weight: 600; }
+  .demo-reset {
+    font: inherit; font-size: 13px; color: var(--subtext); background: none; border: 0;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 6px;
+  }
+  .demo-reset:hover { color: var(--text); }
+
+  /* Wide screens: copy left, the receipt floating right with the four people
+     hovering around it at different depths. Tilt follows the pointer (script). */
+  @media (min-width: 940px) {
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: clamp(28px, 3.4vw, 64px); text-align: left; padding: clamp(56px, 5vw, 88px) 0 clamp(104px, 9vw, 150px); }
+    /* .hero-copy prefix: the base h1/sub rules sit further down the sheet
+       and would otherwise win at equal specificity. */
+    .hero .hero-copy h1 { font-size: clamp(38px, 4.3vw - 10px, 72px); }
+    .hero .hero-copy p.sub { margin: clamp(22px, 2vw, 34px) 0 clamp(36px, 3vw, 52px); max-width: 25em; font-size: clamp(17px, 1.25vw, 23px); line-height: 1.7; }
+    .demo { margin-top: 0; text-align: center; }
+    .stage-inner {
+      max-width: none; width: 540px; padding: 6px 0 18px;
+      transform-style: preserve-3d;
+      transform: rotateX(calc(5deg + var(--rx, 0deg))) rotateY(calc(-9deg + var(--ry, 0deg)));
+      transition: transform .25s ease-out;
+    }
+    .receipt { width: 304px; margin: 0 auto; }
+    .people { display: block; position: absolute; inset: 0; margin: 0; pointer-events: none; transform-style: preserve-3d; z-index: 2; }
+    .person {
+      position: absolute; width: 112px; pointer-events: auto;
+      animation: bob 6s ease-in-out infinite;
+    }
+    .person[data-id="you"]  { left: 0;   top: 34px;     transform: translateZ(70px) rotate(-4deg); }
+    .person[data-id="maya"] { right: 0;  top: 96px;     transform: translateZ(46px) rotate(3deg);  animation-delay: -1.6s; }
+    .person[data-id="dev"]  { left: 2px; bottom: 132px; transform: translateZ(38px) rotate(2deg);  animation-delay: -3.1s; }
+    .person[data-id="sam"]  { right: 4px; bottom: 54px; transform: translateZ(62px) rotate(-3deg); animation-delay: -4.4s; }
+  }
+  @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
 
   .hero h1 {
-    font-size: clamp(34px, 6vw, 58px); font-weight: 800; line-height: 1.12;
-    letter-spacing: -0.02em; animation: rise .7s ease .35s both;
+    font-size: clamp(34px, 6vw, 58px); font-weight: 800; line-height: 1.16;
+    letter-spacing: -0.012em; animation: rise .7s ease .35s both;
   }
   .hero h1 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .hero p.sub {
@@ -166,36 +284,22 @@
     margin: 20px auto 36px; line-height: 1.6; animation: rise .7s ease .5s both;
   }
   .hero .cta-row { animation: rise .7s ease .65s both; }
-  .cta-big { font-size: 16px; padding: 15px 36px; }
-  .cta-note { display: block; margin-top: 14px; color: var(--subtext); font-size: 13px; }
+  .cta-big { font-size: clamp(16px, 1.1vw, 20px); padding: .95em 2.25em; }
+  .cta-note { display: block; margin-top: 16px; color: var(--subtext); font-size: clamp(13px, .9vw, 15.5px); letter-spacing: .01em; }
   @keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
-
-  /* ---------- steps ---------- */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-bottom: 96px; }
-  .step {
-    background: var(--panel); border: 1px solid var(--hairline); border-radius: 20px;
-    padding: 28px 24px;
-      min-width: 0;
-  }
-  .step .num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 999px; background: var(--grad);
-    font-size: 13px; font-weight: 700; margin-bottom: 16px;
-  }
-  .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-  .step p { color: var(--subtext); font-size: 14px; line-height: 1.6; }
 
   /* ---------- pool card feature ---------- */
   .feature {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
-    padding-bottom: 112px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(48px, 6vw, 120px); align-items: center;
+    padding-bottom: clamp(112px, 9vw, 170px);
   }
   .vcard {
     aspect-ratio: 1.6; border-radius: 20px; position: relative; overflow: hidden;
     background: #0a0a0d;
     border: 1px solid rgba(255,255,255,.09);
     box-shadow: 0 24px 64px rgba(244,63,94,.22);
-    transform: rotate(-3deg);
+    transform: rotate(-3deg) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform .25s ease-out, box-shadow .5s ease;
     padding: 20px; display: flex; flex-direction: column; justify-content: space-between;
     gap: 12px;
   }
@@ -229,7 +333,20 @@
   .vcard .vc-track {
     height: 5px; border-radius: 99px; background: rgba(255,255,255,.1); overflow: hidden;
   }
-  .vcard .vc-fill { height: 100%; width: 68%; border-radius: 99px; background: var(--grad); }
+  .vcard .vc-fill { height: 100%; width: 68%; border-radius: 99px; background: var(--grad); transition: width .6s cubic-bezier(.22,.8,.3,1); }
+  .vcard.funded { box-shadow: 0 24px 80px rgba(249,115,22,.5), 0 0 0 1px rgba(249,115,22,.5); }
+  .vcard-wrap { perspective: 1000px; }
+  /* chip-in row: tap a friend, the pot fills */
+  .chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(8px, .7vw, 12px); margin-top: 30px; max-width: clamp(420px, 34vw, 560px); }
+  .chip-row .lbl { flex-basis: 100%; color: var(--subtext); font-size: clamp(13.5px, .95vw, 16px); margin-bottom: 2px; }
+  .chip-in {
+    font: inherit; font-size: clamp(13.5px, .95vw, 16px); font-weight: 600; color: var(--text); cursor: pointer;
+    background: var(--panel); border: 1px solid var(--hairline); border-radius: 999px;
+    padding: .65em 1.05em; min-height: 40px; transition: border-color .2s ease, background .2s ease, color .2s ease;
+  }
+  .chip-in:hover { border-color: rgba(249,115,22,.55); }
+  .chip-in[disabled] { cursor: default; color: var(--subtext); background: transparent; border-style: dashed; }
+  .pool-note { color: var(--subtext); font-size: clamp(13px, .9vw, 15px); line-height: 1.6; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--hairline); }
   .vcard .vc-bottom { display: flex; align-items: flex-end; gap: 16px; }
   .vcard .vc-meta-label {
     color: rgba(255,255,255,.6); font-size: 9px; font-weight: 700; letter-spacing: .5px;
@@ -245,22 +362,22 @@
      sliver. Rendered and checked — it reads as "someone holding a phone", never
      as "here is the interface". So the interface gets its own section, at a
      size where it is actually legible. */
-  .shots { padding-bottom: 104px; }
-  .shots-head { text-align: center; max-width: 620px; margin: 0 auto 44px; }
+  .shots { padding-bottom: clamp(104px, 9vw, 160px); }
+  .shots-head { text-align: center; max-width: clamp(620px, 48vw, 860px); margin: 0 auto clamp(44px, 4vw, 72px); }
   .shots-head h2 {
-    font-size: clamp(26px, 4vw, 36px); font-weight: 800;
+    font-size: clamp(27px, 3vw, 54px); font-weight: 800;
     letter-spacing: -.02em; margin-bottom: 12px; text-wrap: balance;
   }
-  .shots-head p { color: var(--subtext); font-size: 16px; line-height: 1.65; }
+  .shots-head p { color: var(--subtext); font-size: clamp(16px, 1.15vw, 20px); line-height: 1.7; }
   .shots-row {
     display: flex; justify-content: center; align-items: flex-start;
-    gap: clamp(20px, 5vw, 64px); flex-wrap: wrap;
+    gap: clamp(20px, 6vw, 120px); flex-wrap: wrap;
   }
-  .shot { width: 236px; }
+  .shot { --sw: clamp(236px, 18vw, 330px); width: var(--sw); }
   /* Device frame: a hairline bezel and a warm accent glow, so the screenshot
      reads as a phone rather than a floating rectangle. */
   .phone {
-    position: relative; border-radius: 30px; padding: 7px;
+    position: relative; border-radius: calc(var(--sw) * .127); padding: calc(var(--sw) * .03);
     background: linear-gradient(150deg, #2a2b31, #131418 55%, #26272c);
     box-shadow:
       0 28px 70px rgba(0,0,0,.55),
@@ -271,69 +388,243 @@
        the browser can reserve space before the file arrives; without this the
        attribute pins the height at 1026px while width scales to 236px, and the
        screenshot renders vertically stretched. */
-    display: block; width: 100%; height: auto; border-radius: 24px;
+    display: block; width: 100%; height: auto; border-radius: calc(var(--sw) * .1);
     background: #0a0a0d;
   }
   /* speaker slot */
   .phone::after {
-    content: ''; position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-    width: 52px; height: 5px; border-radius: 99px; background: rgba(0,0,0,.55);
+    content: ''; position: absolute; top: calc(var(--sw) * .064); left: 50%; transform: translateX(-50%);
+    width: calc(var(--sw) * .22); height: calc(var(--sw) * .021); border-radius: 99px; background: rgba(0,0,0,.55);
   }
   .shot figcaption {
     margin-top: 18px; text-align: center;
   }
-  .shot .cap-t { font-size: 15px; font-weight: 700; }
-  .shot .cap-d { color: var(--subtext); font-size: 13.5px; line-height: 1.55; margin-top: 5px; }
+  .shot .cap-t { font-size: clamp(15px, 1.1vw, 19px); font-weight: 700; }
+  .shot .cap-d { color: var(--subtext); font-size: clamp(13.5px, .95vw, 16px); line-height: 1.6; margin-top: 6px; }
 
-  .feature h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin-bottom: 16px; line-height: 1.2; }
-  .feature p { color: var(--subtext); font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
+  .feature h2 { font-size: clamp(27px, 3vw, 54px); font-weight: 800; letter-spacing: -0.01em; margin-bottom: clamp(16px, 1.6vw, 28px); line-height: 1.2; }
+  .feature p { color: var(--subtext); font-size: clamp(15px, 1.1vw, 19px); line-height: 1.75; margin-bottom: clamp(12px, 1.1vw, 18px); }
 
   /* ---------- footer ---------- */
   footer {
     border-top: 1px solid var(--hairline);
     padding: 32px 0 48px; display: flex; align-items: center; justify-content: space-between;
-    color: var(--subtext); font-size: 13px; gap: 12px; flex-wrap: wrap;
+    color: var(--subtext); font-size: clamp(13px, .9vw, 15px); gap: 12px; flex-wrap: wrap;
   }
   footer a { color: var(--text); }
   footer a:hover { color: var(--orange); }
 
   @media (prefers-reduced-motion: reduce) {
-    .coin-left, .coin-right, .coin-glow, .hero h1, .hero p.sub, .hero .cta-row { animation: none; }
+    .coin-left, .coin-right, .hero h1, .hero p.sub, .hero .cta-row, .demo, .person { animation: none !important; }
+    .stage-inner, .vcard { transition: none; }
   }
 
   /* ---- Use cases: the "when would I reach for this" section. The page
      explained HOW it works but never WHEN, so a visitor had to infer the
      product's occasions for themselves. ---- */
-  .uses { padding-bottom: 96px; }
-  .uses .lede { max-width: 640px; margin-bottom: 34px; }
-  .uses h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
-  .uses .lede p { color: var(--subtext); font-size: 16px; line-height: 1.65; }
-  .use-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  /* Positioned so it paints above .hero-bg, whose fade deliberately hangs 40px
+     below the hero and otherwise covers the first line of this heading. */
+  .uses { padding-bottom: clamp(96px, 9vw, 160px); position: relative; z-index: 1; }
+  .uses .lede { max-width: clamp(640px, 50vw, 880px); margin-bottom: clamp(34px, 3.4vw, 60px); }
+  .uses h2 { font-size: clamp(27px, 3vw, 54px); font-weight: 800; letter-spacing: -.015em; line-height: 1.16; margin-bottom: clamp(12px, 1.2vw, 22px); }
+  .uses .lede p { color: var(--subtext); font-size: clamp(16px, 1.15vw, 20px); line-height: 1.7; }
+  .use-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 1.6vw, 28px); }
   .use {
     background: var(--panel); border: 1px solid var(--hairline); border-radius: 20px;
-    padding: 24px 22px; transition: border-color .2s ease, transform .2s ease;
+    padding: clamp(24px, 2.3vw, 40px) clamp(22px, 2.1vw, 36px); transition: border-color .2s ease, transform .2s ease;
       min-width: 0;
   }
   .use:hover { border-color: rgba(244,63,94,.35); transform: translateY(-2px); }
   .use .tag {
-    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--subtext); margin-bottom: 10px;
+    display: inline-block; font-size: clamp(11px, .78vw, 13px); font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--subtext); margin-bottom: clamp(10px, 1vw, 16px);
   }
-  .use h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-  .use p { color: var(--subtext); font-size: 14px; line-height: 1.6; }
+  .use h3 { font-size: clamp(17px, 1.3vw, 23px); font-weight: 700; margin-bottom: clamp(8px, .8vw, 14px); }
+  .use p { color: var(--subtext); font-size: clamp(14px, 1.02vw, 17.5px); line-height: 1.68; }
   .use .grad-dot {
     display: inline-block; width: 6px; height: 6px; border-radius: 999px;
     background: var(--grad); margin-right: 8px; vertical-align: middle;
   }
 
+
+  /* ---------- scroll motion ----------
+     Deliberately loud (the first pass was too polite to notice on a phone,
+     2026-11-19). Three layers:
+       1. [data-reveal] plays once as a block enters, staggered by --i.
+       2. [data-scrub] is tied to the scrollbar: the script writes --p (0 at
+          the bottom of the screen, 1 once settled).
+       3. .story pins the screen and replays the whole product — scan, claim,
+          settle — across three screens of scrolling.
+     Every var() falls back to the finished state, and all of it sits behind
+     html.js, so without JS or with reduced motion the page is plain and whole. */
+  .wrap { position: relative; z-index: 1; }
+  .aura { display: none; }
+  html.js .aura {
+    display: block; position: fixed; left: 0; top: 0; width: 80vmax; height: 80vmax; border-radius: 50%;
+    background: radial-gradient(circle, hsl(var(--hue, 350) 92% 56% / .26), transparent 62%);
+    transform: translate(calc(var(--ax, 50) * 1vw - 40vmax), calc(var(--ay, 40) * 1vh - 40vmax));
+    pointer-events: none; z-index: 0;
+  }
+
+  html.js [data-reveal] {
+    opacity: 0; transform: perspective(900px) translateY(110px) rotateX(38deg) scale(.86); transform-origin: 50% 100%;
+    transition: opacity .7s ease, transform .95s cubic-bezier(.2,.85,.25,1);
+    transition-delay: calc(var(--i, 0) * 110ms);
+  }
+  html.js [data-reveal].in { opacity: 1; transform: none; }
+
+  /* hero leaves: photo drifts slower than the page; on wide screens the copy
+     lifts away and the receipt falls back flat onto the table */
+  html.js .hero.has-photo .hero-bg::before { transform: translateY(calc(var(--h, 0) * 160px)) scale(calc(1 + var(--h, 0) * .12)); }
+  @media (min-width: 940px) {
+    html.js .hero-copy { opacity: calc(1 - var(--h, 0) * 1.7); transform: translateY(calc(var(--h, 0) * -130px)); }
+    html.js .stage { transform: translateY(calc(var(--h, 0) * -60px)) scale(calc(1 - var(--h, 0) * .28)); }
+    html.js .stage-inner {
+      transform: rotateX(calc(5deg + var(--rx, 0deg) + var(--h, 0) * 52deg)) rotateY(calc(-9deg + var(--ry, 0deg) - var(--h, 0) * 14deg));
+    }
+  }
+
+  /* ----- the pinned story -----
+     Static form first (no JS / reduced motion): three plain cards. */
+  .story { padding-bottom: 96px; }
+  .story-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .story-step { background: var(--panel); border: 1px solid var(--hairline); border-radius: 20px; padding: 28px 24px; min-width: 0; }
+  .story-step .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 999px; background: var(--grad);
+    font-size: 13px; font-weight: 700; margin-bottom: 16px;
+  }
+  .story-step h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .story-step p { color: var(--subtext); font-size: 14px; line-height: 1.6; }
+  .story-visual, .story-rail { display: none; }
+
+  /* Pinned form. The section is 3.6 screens tall; .story-pin sticks for the
+     duration and the script turns the distance scrolled into --e (entering),
+     --a (scan), --b (claim), --c (settle), each 0..1, plus data-stage. */
+  html.js .story { height: 360vh; padding-bottom: 0; margin-bottom: 110px; }
+  html.js .story-pin {
+    position: sticky; top: 0; height: 100vh; height: 100svh;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; column-gap: 40px;
+  }
+  html.js .story-steps { display: block; position: relative; height: clamp(290px, 25vw, 430px); }
+  html.js .story-step {
+    position: absolute; left: 0; top: 0; width: 100%; background: none; border: 0; border-radius: 0; padding: 0;
+    opacity: 0; transform: translateY(70px) scale(.94); transform-origin: 0 50%;
+    transition: opacity .45s ease, transform .6s cubic-bezier(.2,.85,.25,1);
+  }
+  html.js .story[data-stage="0"] .story-step:nth-child(1),
+  html.js .story[data-stage="1"] .story-step:nth-child(2),
+  html.js .story[data-stage="2"] .story-step:nth-child(3) { opacity: 1; transform: none; }
+  html.js .story[data-stage="1"] .story-step:nth-child(1),
+  html.js .story[data-stage="2"] .story-step:nth-child(1),
+  html.js .story[data-stage="2"] .story-step:nth-child(2) { transform: translateY(-70px) scale(.94); }
+  html.js .story-step .num { width: 46px; height: 46px; font-size: 19px; margin-bottom: 22px; box-shadow: 0 0 34px rgba(244,63,94,.6); }
+  html.js .story-step h3 { font-size: clamp(30px, 4.2vw, 70px); font-weight: 800; letter-spacing: -.02em; line-height: 1.08; margin-bottom: 16px; }
+  html.js .story-step p { font-size: clamp(15px, 1.35vw, 22px); line-height: 1.7; max-width: 24em; }
+  html.js .story-rail { display: block; width: clamp(200px, 17vw, 300px); height: 3px; border-radius: 3px; background: var(--hairline); overflow: hidden; }
+  html.js .story-rail span { display: block; height: 100%; background: var(--grad); transform-origin: 0 50%; transform: scaleX(var(--sp, 1)); }
+
+  html.js .story-visual { display: block; position: relative; height: min(600px, 100%); min-height: 0; --ux: 170px; --uy: 150px; --big: 1; }
+  .s-receipt {
+    position: absolute; left: 50%; top: 50%; width: 276px; background: var(--paper); color: var(--ink);
+    border-radius: 6px 6px 0 0; padding: 16px 12px 12px; font-size: 13px; font-weight: 600;
+    box-shadow: 0 40px 90px rgba(0,0,0,.6), 0 0 90px rgba(244,63,94,.22);
+    transform:
+      translate(-50%, -50%)
+      translateY(calc((1 - var(--e, 1)) * 80vh))
+      rotate(calc((1 - var(--e, 1)) * 34deg - var(--c, 0) * 16deg))
+      scale(calc(var(--fit, 1) * (1 - var(--c, 0) * .62)));
+    opacity: calc(1 - var(--c, 0) * 2.2);
+  }
+  .s-receipt::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 9px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0 / 12px 9px repeat-x,
+      linear-gradient(225deg, var(--paper) 50%, transparent 50%) 0 0 / 12px 9px repeat-x;
+  }
+  .s-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 8px 10px; border-bottom: 1px dashed rgba(23,24,29,.25); margin-bottom: 4px; font-weight: 700; font-size: 15px; }
+  .s-head span + span { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
+  /* a row is read as the beam passes it, then tinted as it is claimed */
+  .s-row {
+    position: relative; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px;
+    font-variant-numeric: tabular-nums;
+    opacity: clamp(.1, calc(var(--a, 1) * 8.4 - var(--i)), 1);
+  }
+  .s-row > span:first-child { flex: 1; }
+  .s-row::before {
+    content: ''; position: absolute; inset: 0; border-radius: 8px; background: var(--pc);
+    opacity: clamp(0, calc((var(--b, 1) * 8.4 - var(--i)) * .22), .22);
+  }
+  .s-row > * { position: relative; }
+  .s-dots { display: flex; gap: 3px; }
+  .s-dots i { width: 10px; height: 10px; border-radius: 99px; transform: scale(clamp(0, calc(var(--b, 1) * 8.4 - var(--i)), 1)); }
+  .s-total {
+    display: flex; justify-content: space-between; border-top: 1px dashed rgba(23,24,29,.25);
+    margin-top: 4px; padding: 10px 8px 0; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums;
+    opacity: clamp(.1, calc(var(--a, 1) * 8.4 - 7), 1);
+  }
+  .s-beam {
+    position: absolute; left: -10px; right: -10px; height: 3px; border-radius: 3px; z-index: 2;
+    top: calc(var(--a, 0) * 100%); background: var(--grad);
+    box-shadow: 0 0 18px 4px rgba(249,115,22,.75), 0 0 60px 12px rgba(244,63,94,.45);
+    opacity: 0; transition: opacity .25s ease;
+  }
+  .story[data-stage="0"] .s-beam { opacity: 1; }
+
+  /* settle: the receipt collapses and the four shares burst out of it */
+  .s-card {
+    position: absolute; left: 50%; top: 50%; width: 124px; margin: -50px 0 0 -62px; text-align: center;
+    background: rgba(22,23,30,.92); border: 1px solid var(--pc); border-radius: 18px; padding: 12px 6px 11px;
+    box-shadow: 0 16px 44px color-mix(in srgb, var(--pc) 38%, transparent);
+    transform:
+      translate(calc(var(--c, 0) * var(--sx) * var(--ux)), calc(var(--c, 0) * var(--sy) * var(--uy)))
+      rotate(calc((1 - var(--c, 0)) * var(--rot)))
+      scale(calc((.2 + var(--c, 0) * .8) * var(--big, 1)));
+    opacity: clamp(0, calc(var(--c, 0) * 5), 1);
+  }
+  .s-card span { display: block; font-size: 12.5px; color: var(--subtext); }
+  .s-card strong { display: block; font-size: 18px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .s-av { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 99px; margin: 0 auto 6px; background: var(--pc); font-size: 14px; }
+  .s-av.s-you { background: var(--grad); }
+  .s-done { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(var(--big, 1)); display: flex; flex-direction: column; align-items: center; gap: 12px; white-space: nowrap; }
+  .s-coin { position: relative; width: 78px; height: 78px; opacity: clamp(0, calc(var(--c, 0) * 3 - 1), 1); filter: drop-shadow(0 0 26px rgba(249,115,22,.7)); }
+  .s-coin .coin-left  { transform: translateX(calc((1 - var(--c, 0)) * -90px)); }
+  .s-coin .coin-right { transform: translateX(calc((1 - var(--c, 0)) * 90px)); }
+  .s-done-t { font-size: 14px; font-weight: 700; opacity: clamp(0, calc(var(--c, 0) * 8 - 7), 1); }
+
+  /* phones: fly in from either side, spinning upright, at different speeds */
+  html.js .shot:nth-child(1) .phone {
+    transform: perspective(1000px) translate(calc((1 - var(--p, 1)) * -34vw), calc((1 - var(--p, 1)) * 220px)) rotateY(calc((1 - var(--p, 1)) * 62deg)) rotateZ(calc((1 - var(--p, 1)) * -18deg)) scale(calc(.62 + var(--p, 1) * .38));
+    opacity: calc(.1 + var(--p, 1) * .9);
+  }
+  html.js .shot:nth-child(2) .phone {
+    transform: perspective(1000px) translate(calc((1 - var(--p, 1)) * 34vw), calc((1 - var(--p, 1)) * 380px)) rotateY(calc((1 - var(--p, 1)) * -62deg)) rotateZ(calc((1 - var(--p, 1)) * 18deg)) scale(calc(.62 + var(--p, 1) * .38));
+    opacity: calc(.1 + var(--p, 1) * .9);
+  }
+  html.js .shot figcaption { opacity: calc(var(--p, 1) * 2.5 - 1.5); }
+
+  /* pool card: swings in from off-screen, then its bar fills from empty */
+  html.js .vcard-wrap {
+    opacity: calc(var(--p, 1) * 1.2 - .1);
+    transform: translateX(calc((1 - var(--p, 1)) * -46vw)) rotate(calc((1 - var(--p, 1)) * -38deg)) scale(calc(.7 + var(--p, 1) * .3));
+  }
+  html.js .feature:not(.in) .vc-fill { width: 0; }
+
+  /* closer: the last line lands from far away */
+  html.js .closer h2 {
+    transform: scale(calc(.45 + var(--p, 1) * .55)); opacity: calc(var(--p, 1) * 1.3 - .3);
+    letter-spacing: calc(-.02em + (1 - var(--p, 1)) * .5em);
+  }
+  html.js .closer .pill { transform: translateY(calc((1 - var(--p, 1)) * 80px)); opacity: calc(var(--p, 1) * 2 - 1); }
+
   /* ---- Closing CTA. Every call to action lived above the fold, so anyone who
      actually read the page had nothing to tap at the end of it. ---- */
   .closer {
-    text-align: center; padding: 72px 24px 96px;
+    text-align: center; padding: clamp(72px, 7vw, 130px) 24px clamp(96px, 8vw, 150px);
     border-top: 1px solid var(--hairline);
   }
-  .closer h2 { font-size: clamp(26px, 4.5vw, 40px); font-weight: 800; letter-spacing: -.02em; margin-bottom: 14px; }
-  .closer p { color: var(--subtext); font-size: 16px; max-width: 460px; margin: 0 auto 28px; line-height: 1.65; }
+  .closer h2 { font-size: clamp(27px, 3.4vw, 62px); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin-bottom: clamp(14px, 1.4vw, 26px); }
+  .closer p { color: var(--subtext); font-size: clamp(16px, 1.15vw, 20px); max-width: 29em; margin: 0 auto clamp(28px, 2.6vw, 44px); line-height: 1.7; }
   /* ---------- responsive ----------
      Kept LAST on purpose. These overrides are plain class selectors, so any
      rule of equal specificity declared below would silently beat them —
@@ -342,16 +633,57 @@
      horizontal overflow stopped the 100vw hero from reaching the right
      edge. Add new breakpoints here, not above. */
   @media (max-width: 820px) {
-    .steps { grid-template-columns: 1fr; }
-    .shot { width: min(236px, 62vw); }
+    .story-steps { grid-template-columns: 1fr; }
+    html.js .story-pin { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-items: start; padding: 78px 0 24px; row-gap: 6px; }
+    html.js .story-steps { height: 196px; }
+    html.js .story-step .num { width: 38px; height: 38px; font-size: 16px; margin-bottom: 14px; }
+    html.js .story-visual { height: 100%; --ux: 92px; --uy: 128px; }
+    .s-card { width: 112px; margin-left: -56px; }
+    .shot { --sw: min(236px, 62vw); }
     .use-grid { grid-template-columns: 1fr; }
     .feature { grid-template-columns: 1fr; gap: 40px; }
     .vcard { max-width: 380px; margin: 0 auto; }
+    .chip-row { margin-left: auto; margin-right: auto; justify-content: center; text-align: center; }
+  }
+
+  /* iPad portrait and other mid widths: the stacked receipt is a phone-sized
+     object in a tablet-sized column, so enlarge it as a whole. */
+  @media (min-width: 640px) and (max-width: 939px) {
+    .stage { zoom: 1.22; }
+  }
+
+  /* iPad landscape / small laptops: the story's right column is narrow, so
+     the settle cards fly a shorter distance to stay on screen. */
+  @media (min-width: 821px) and (max-width: 1023px) {
+    html.js .story-visual { --ux: 118px; }
+  }
+
+  /* ---------- big screens ----------
+     Most sizes above already grow with the window (clamp + vw). These are the
+     pieces built from fixed pixel parts — the hero receipt, the pinned story
+     and the pool card — which are enlarged as whole objects instead. The
+     height conditions keep the hero inside one screen on short, wide windows. */
+  @media (min-width: 1400px) and (min-height: 760px) {
+    .stage { zoom: 1.12; }
+    .demo-hint, .demo-status { font-size: 15.5px; }
+  }
+  @media (min-width: 1400px) {
+    html.js .story-visual { height: min(700px, 100%); --big: 1.2; --ux: 215px; --uy: 185px; }
+    .vcard { zoom: 1.18; }
+  }
+  @media (min-width: 1700px) and (min-height: 900px) {
+    .stage { zoom: 1.26; }
+    .demo-hint, .demo-status { font-size: 17px; }
+  }
+  @media (min-width: 1700px) {
+    html.js .story-visual { height: min(820px, 100%); --big: 1.42; --ux: 260px; --uy: 222px; }
+    .vcard { zoom: 1.36; }
   }
 
 </style>
 </head>
 <body>
+<div class="aura" aria-hidden="true"></div>
 
 <div class="wrap">
   <nav>
@@ -361,23 +693,54 @@
 
   <header class="hero has-photo">
     <div class="hero-bg" aria-hidden="true"></div>
-    <div class="coin-stage" aria-hidden="true">
-      <div class="coin-glow"></div>
-      <div class="coin-half coin-left"><img src="/assets/logo-mark.png?v=2" alt=""></div>
-      <div class="coin-half coin-right"><img src="/assets/logo-mark.png?v=2" alt=""></div>
+    <div class="hero-copy">
+      <h1>Split the bill.<br>Pool the money.<br><span class="grad">Spend together.</span></h1>
+      <p class="sub">Synk turns one receipt into everyone's fair share — scan it, claim your items,
+        and settle up. Pool money for the trip so nobody has to front it.</p>
+      <div class="cta-row">
+        <a class="pill cta-big" href="https://testflight.apple.com/join/66DujTNq">Get the app</a>
+        <span class="cta-note">iPhone · private beta — coming to the App&nbsp;Store</span>
+      </div>
     </div>
-    <h1>Split the bill.<br>Pool the money.<br><span class="grad">Spend together.</span></h1>
-    <p class="sub">Synk turns one receipt into everyone's fair share — scan it, claim your items,
-      and settle up. Pool money for the trip and spend it together, from one card.</p>
-    <div class="cta-row">
-      <a class="pill cta-big" href="https://testflight.apple.com/join/66DujTNq">Get the app</a>
-      <span class="cta-note">iPhone · private beta — coming to the App&nbsp;Store</span>
+
+    <!-- The live split. This is the product's one gesture — claim what you had,
+         watch every share settle — so it leads the page instead of a picture of
+         it. Everything here is rendered by the script at the bottom; with JS off
+         the hero is simply the copy above. -->
+    <div class="demo" id="demo" hidden>
+      <p class="demo-hint">Try it: pick a person, then tap what they had.</p>
+      <div class="stage" id="stage">
+        <div class="stage-inner">
+          <div class="people" id="people" role="group" aria-label="Who is claiming"></div>
+          <div class="receipt">
+            <div class="r-head">
+              <span class="r-title">Dinner for four</span>
+              <span class="r-ex">Example bill</span>
+            </div>
+            <ul class="r-items" id="r-items"></ul>
+            <div class="r-totals">
+              <div><span>Subtotal</span><span id="r-sub"></span></div>
+              <div><span>Tax 8%</span><span id="r-tax"></span></div>
+              <div><span>Tip 18%</span><span id="r-tip"></span></div>
+              <div class="r-total"><span>Total</span><span id="r-total"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-status" id="demo-status" aria-live="polite">
+        <span class="mini-coin" aria-hidden="true">
+          <span class="coin-half coin-left"><img src="/assets/logo-mark.png?v=2" alt=""></span>
+          <span class="coin-half coin-right"><img src="/assets/logo-mark.png?v=2" alt=""></span>
+        </span>
+        <span id="demo-msg"></span>
+        <button type="button" class="demo-reset" id="demo-reset">Start over</button>
+      </div>
     </div>
   </header>
 
 
-  <section class="uses">
-    <div class="lede">
+  <section class="uses" id="uses">
+    <div class="lede" data-reveal>
       <h2>Made for the bills you<br>already share.</h2>
       <p>Rent, the weekly shop, a table for eight, a trip everyone keeps meaning to book.
         Anywhere money is shared, someone ends up out of pocket and chasing it. Synk collects
@@ -385,37 +748,37 @@
     </div>
 
     <div class="use-grid">
-      <div class="use">
+      <div class="use" data-reveal style="--i:0">
         <span class="tag"><span class="grad-dot"></span>Every month</span>
         <h3>Rent &amp; house bills</h3>
         <p>Set it once and it repeats. Everyone's share is collected on the same day, so nobody
           is fronting the landlord and waiting.</p>
       </div>
-      <div class="use">
+      <div class="use" data-reveal style="--i:1">
         <span class="tag"><span class="grad-dot"></span>Before you go</span>
         <h3>Trips &amp; weekends away</h3>
         <p>Pool the money first, then spend it from one shared card. No one carries the booking
           on their own credit card for a month.</p>
       </div>
-      <div class="use">
+      <div class="use" data-reveal style="--i:2">
         <span class="tag"><span class="grad-dot"></span>At the table</span>
         <h3>Dinner &amp; drinks</h3>
         <p>Scan the receipt, everyone taps what they had. Shared plates split themselves and the
           odd penny never lands on one person.</p>
       </div>
-      <div class="use">
+      <div class="use" data-reveal style="--i:0">
         <span class="tag"><span class="grad-dot"></span>Every week</span>
         <h3>The big shop</h3>
         <p>One person pays at the till. Synk reads the receipt line by line, so the flatmate who
           skipped the wine isn't paying for it.</p>
       </div>
-      <div class="use">
+      <div class="use" data-reveal style="--i:1">
         <span class="tag"><span class="grad-dot"></span>Together</span>
         <h3>Gifts &amp; group funds</h3>
         <p>Collect toward a number. Everyone can see what's in and what's left, without one
           person keeping a tally in their notes app.</p>
       </div>
-      <div class="use">
+      <div class="use" data-reveal style="--i:2">
         <span class="tag"><span class="grad-dot"></span>Shared plans</span>
         <h3>Subscriptions</h3>
         <p>The streaming account, the family plan, the gym. Split the recurring ones once and
@@ -424,31 +787,64 @@
     </div>
   </section>
 
-  <section class="steps">
-    <div class="step">
-      <span class="num">1</span>
-      <h3>Scan the receipt</h3>
-      <p>Snap it and Synk reads every line — items, tax, and tip. No typing totals into a calculator at the table.</p>
-    </div>
-    <div class="step">
-      <span class="num">2</span>
-      <h3>Claim your items</h3>
-      <p>Everyone taps what they had. Shared plates get split, and the pennies land fairly — never on one person.</p>
-    </div>
-    <div class="step">
-      <span class="num">3</span>
-      <h3>Settle your way</h3>
-      <p>Pay from your bank for free, or instantly with a card. Everyone sees exactly who's in and what's left.</p>
+  <section class="story" id="story">
+    <div class="story-pin">
+      <div class="story-text">
+        <div class="story-steps">
+          <div class="story-step">
+            <span class="num">1</span>
+            <h3>Scan the receipt</h3>
+            <p>Snap it and Synk reads every line — items, tax, and tip. No typing totals into a calculator at the table.</p>
+          </div>
+          <div class="story-step">
+            <span class="num">2</span>
+            <h3>Claim your items</h3>
+            <p>Everyone taps what they had. Shared plates get split, and the pennies land fairly — never on one person.</p>
+          </div>
+          <div class="story-step">
+            <span class="num">3</span>
+            <h3>Settle your way</h3>
+            <p>Pay from your bank for free, or instantly with a card. Everyone sees exactly who's in and what's left.</p>
+          </div>
+        </div>
+        <div class="story-rail" aria-hidden="true"><span></span></div>
+      </div>
+      <!-- Decorative replay of the hero demo, driven by the scrollbar. -->
+      <div class="story-visual" aria-hidden="true">
+        <div class="s-receipt">
+          <div class="s-beam"></div>
+          <div class="s-head"><span>Dinner for four</span><span>Example bill</span></div>
+            <div class="s-row" style="--i:0;--pc:var(--maya)"><span>Margherita pizza</span><span class="s-dots"><i style="background:var(--maya)"></i></span><span>$16.00</span></div>
+            <div class="s-row" style="--i:1;--pc:var(--dev)"><span>Truffle pasta</span><span class="s-dots"><i style="background:var(--dev)"></i></span><span>$22.00</span></div>
+            <div class="s-row" style="--i:2;--pc:var(--you)"><span>Cheeseburger</span><span class="s-dots"><i style="background:var(--you)"></i></span><span>$18.00</span></div>
+            <div class="s-row" style="--i:3;--pc:var(--sam)"><span>Caesar salad</span><span class="s-dots"><i style="background:var(--sam)"></i></span><span>$13.00</span></div>
+            <div class="s-row" style="--i:4;--pc:var(--you)"><span>Garlic bread</span><span class="s-dots"><i style="background:var(--you)"></i><i style="background:var(--maya)"></i><i style="background:var(--dev)"></i><i style="background:var(--sam)"></i></span><span>$7.00</span></div>
+            <div class="s-row" style="--i:5;--pc:var(--maya)"><span>Bottle of red</span><span class="s-dots"><i style="background:var(--maya)"></i><i style="background:var(--sam)"></i></span><span>$32.00</span></div>
+            <div class="s-row" style="--i:6;--pc:var(--you)"><span>Sparkling water</span><span class="s-dots"><i style="background:var(--you)"></i></span><span>$5.00</span></div>
+          <div class="s-total"><span>Total</span><span>$142.38</span></div>
+        </div>
+        <div class="s-card" style="--sx:-1;--sy:-1;--rot:-30deg;--pc:var(--you)"><b class="s-av s-you">Y</b><span>You</span><strong>$31.19</strong></div>
+        <div class="s-card" style="--sx:1;--sy:-1;--rot:30deg;--pc:var(--maya)"><b class="s-av">M</b><span>Maya</span><strong>$42.53</strong></div>
+        <div class="s-card" style="--sx:-1;--sy:1;--rot:24deg;--pc:var(--dev)"><b class="s-av">D</b><span>Dev</span><strong>$29.92</strong></div>
+        <div class="s-card" style="--sx:1;--sy:1;--rot:-24deg;--pc:var(--sam)"><b class="s-av">S</b><span>Sam</span><strong>$38.74</strong></div>
+        <div class="s-done">
+          <span class="s-coin">
+            <span class="coin-half coin-left"><img src="/assets/logo-mark.png?v=2" alt=""></span>
+            <span class="coin-half coin-right"><img src="/assets/logo-mark.png?v=2" alt=""></span>
+          </span>
+          <span class="s-done-t">Settled to the penny</span>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="shots">
-    <div class="shots-head">
+    <div class="shots-head" data-reveal>
       <h2>This is the whole app</h2>
       <p>No dashboard to learn. Open it and you can see every split and pot you are part of,
         how much has landed, and what is still waiting on you.</p>
     </div>
-    <div class="shots-row">
+    <div class="shots-row" data-scrub>
       <figure class="shot">
         <div class="phone"><img src="/assets/shot-money.jpg" alt="The Synk Money screen, listing every split and pot in progress with how much has been collected against each goal." width="472" height="1026" loading="lazy"></div>
         <figcaption>
@@ -460,15 +856,15 @@
         <div class="phone"><img src="/assets/shot-cards.jpg" alt="The Synk card wallet, showing a stack of pool cards for a weekend BBQ, a birthday gift, rent, and a ski lodge, each with its own artwork." width="472" height="1026" loading="lazy"></div>
         <figcaption>
           <div class="cap-t">Every pot gets a card</div>
-          <div class="cap-d">Chip in together, then spend straight from the pot. Choose the artwork; the balance is real money.</div>
+          <div class="cap-d">Chip in together and watch the pot fill. Choose the artwork. Pool cards are in testing during the beta.</div>
         </figcaption>
       </figure>
     </div>
   </section>
 
-  <section class="feature">
+  <section class="feature" data-scrub>
     <div>
-      <div class="vcard">
+      <div class="vcard-wrap"><div class="vcard" id="vcard">
         <div class="vc-top">
           <span class="vc-chip"></span>
           <span class="vc-label">POOL CARD</span>
@@ -479,33 +875,38 @@
           </svg>
         </div>
         <div class="vc-num">•••• •••• •••• 0925</div>
-        <div class="vc-track"><div class="vc-fill"></div></div>
+        <div class="vc-track"><div class="vc-fill" id="vc-fill"></div></div>
         <div class="vc-bottom">
           <div>
             <div class="vc-meta-label">BALANCE</div>
-            <div class="vc-balance">$1,360.00</div>
-            <div class="vc-sub">of $2,000.00 · 68%</div>
+            <div class="vc-balance" id="vc-balance">$1,360.00</div>
+            <div class="vc-sub" id="vc-sub">of $2,000.00 · 68%</div>
           </div>
           <div class="vc-right">
             <div>
               <div class="vc-meta-label">EXP</div>
               <div class="vc-meta-value">09/29</div>
             </div>
-            <span class="vc-brand">Visa</span>
+            <span class="vc-brand">Synk</span>
           </div>
         </div>
+      </div></div>
+      <div class="chip-row" id="chip-row" hidden>
+        <span class="lbl" id="chip-lbl" aria-live="polite">Four friends haven't chipped in yet. Tap them in.</span>
       </div>
     </div>
-    <div>
+    <div data-reveal>
       <h2>One pot. One card.<br>Everyone in.</h2>
       <p>Planning a trip? Open a pool, set a goal, and let everyone chip in. The money lands on a
         virtual card the group spends together — with every swipe posted to the pool feed.</p>
       <p>Cancel anytime and everyone gets their share back automatically, in proportion to what they put in.</p>
+      <p class="pool-note">Pool cards are in testing during the private beta. The card shown here is an
+        example, not a live card.</p>
     </div>
   </section>
 
 
-  <section class="closer">
+  <section class="closer" data-scrub>
     <h2>Stop being the one<br>who chases everyone.</h2>
     <p>Synk is in private beta on iPhone. Split a bill with your people and see how much
       shorter the group chat gets.</p>
@@ -513,7 +914,7 @@
   </section>
 
   <footer>
-    <span>© 2026 Synk</span>
+    <span>© 2026 Vireon Technologies LLC · Synk is in private beta</span>
     <span><a href="/support/">Support</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></span>
     <span><a href="mailto:hello@synk.money">hello@synk.money</a></span>
   </footer>
@@ -525,6 +926,254 @@
   if (location.hash.indexOf('type=recovery') !== -1 || location.hash.indexOf('error_code') !== -1) {
     location.replace('/reset/' + location.hash);
   }
+</script>
+
+<script>
+(function () {
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function money(c) { return '$' + (c / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  // Pointer tilt: writes --rx/--ry on `target` from the pointer's position over `zone`.
+  function tilt(zone, target, max) {
+    if (!fine || calm) return;
+    zone.addEventListener('pointermove', function (e) {
+      var r = zone.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      target.style.setProperty('--ry', (x * max).toFixed(2) + 'deg');
+      target.style.setProperty('--rx', (-y * max).toFixed(2) + 'deg');
+    });
+    zone.addEventListener('pointerleave', function () {
+      target.style.setProperty('--ry', '0deg'); target.style.setProperty('--rx', '0deg');
+    });
+  }
+
+  // Count a money figure from its current value to `to`. Stepped by FRAME
+  // COUNT, not elapsed time: a time-based loop never ends if the clock it reads
+  // stalls, and a runaway requestAnimationFrame froze every CSS animation on
+  // the page with it (caught in a headless render, 2026-11-19).
+  function tween(el, to) {
+    var from = +el.dataset.v || 0; el.dataset.v = to;
+    if (calm || from === to) { el.textContent = money(to); return; }
+    var n = 0, FRAMES = 22;
+    (function step() {
+      if (+el.dataset.v !== to) return; // superseded by a newer value
+      n += 1;
+      var e = 1 - Math.pow(1 - n / FRAMES, 3);
+      el.textContent = money(n >= FRAMES ? to : Math.round(from + (to - from) * e));
+      if (n < FRAMES) requestAnimationFrame(step);
+    })();
+  }
+
+  /* ---------- the split ---------- */
+  var PEOPLE = [['you', 'You'], ['maya', 'Maya'], ['dev', 'Dev'], ['sam', 'Sam']];
+  var START = [
+    ['Margherita pizza', 1600, ['maya']],
+    ['Truffle pasta',    2200, ['dev']],
+    ['Cheeseburger',     1800, []],
+    ['Caesar salad',     1300, ['sam']],
+    ['Garlic bread',      700, ['maya', 'dev', 'sam']],
+    ['Bottle of red',    3200, ['maya', 'sam']],
+    ['Sparkling water',   500, []]
+  ];
+  var TAX = .08, TIP = .18;
+  var items, active = 'you';
+
+  // Everyone's total in cents, exact to the penny: an item is divided between
+  // its claimers, tax and tip follow each person's share of the food, and the
+  // leftover cents go to whoever was rounded down the most — never all to one
+  // person. `open` is whatever nobody has claimed yet.
+  function split(list) {
+    var sub = { open: 0 }, subtotal = 0;
+    PEOPLE.forEach(function (p) { sub[p[0]] = 0; });
+    list.forEach(function (it, idx) {
+      subtotal += it.p;
+      var n = it.c.length;
+      if (!n) { sub.open += it.p; return; }
+      var base = Math.floor(it.p / n), rem = it.p - base * n;
+      it.c.forEach(function (id, i) { sub[id] += base + (((i + idx) % n) < rem ? 1 : 0); });
+    });
+    var tax = Math.round(subtotal * TAX), tip = Math.round(subtotal * TIP), extra = tax + tip;
+    var keys = Object.keys(sub), out = {}, given = 0;
+    var fr = keys.map(function (k) {
+      var exact = extra * sub[k] / subtotal, fl = Math.floor(exact);
+      out[k] = sub[k] + fl; given += fl;
+      return [k, exact - fl];
+    }).sort(function (a, b) { return b[1] - a[1]; });
+    for (var i = 0; i < extra - given; i++) out[fr[i % fr.length][0]] += 1;
+    return { each: out, subtotal: subtotal, tax: tax, tip: tip, total: subtotal + extra };
+  }
+  window.__synkSplit = split; // exposed for the test in scripts/
+
+  var demo = document.getElementById('demo');
+  if (demo) {
+    var peopleEl = document.getElementById('people'), listEl = document.getElementById('r-items');
+    var statusEl = document.getElementById('demo-status'), msgEl = document.getElementById('demo-msg');
+    var amtEls = {}, nameOf = {};
+
+    PEOPLE.forEach(function (p) {
+      nameOf[p[0]] = p[1];
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'person'; b.dataset.id = p[0];
+      b.style.setProperty('--c', 'var(--' + p[0] + ')');
+      b.innerHTML = '<span class="av">' + p[1][0] + '</span><span class="nm">' + p[1] + '</span><span class="amt"></span>';
+      b.addEventListener('click', function () { active = p[0]; render(); });
+      amtEls[p[0]] = b.querySelector('.amt');
+      peopleEl.appendChild(b);
+    });
+
+    function reset() {
+      items = START.map(function (r) { return { n: r[0], p: r[1], c: r[2].slice() }; });
+      active = 'you';
+      listEl.innerHTML = '';
+      items.forEach(function (it) {
+        var li = document.createElement('li'), b = document.createElement('button');
+        b.type = 'button'; b.className = 'r-item';
+        b.innerHTML = '<span class="nm"></span><span class="pr"></span><span class="who"></span>';
+        b.querySelector('.nm').textContent = it.n;
+        b.querySelector('.pr').textContent = money(it.p);
+        b.addEventListener('click', function () {
+          var i = it.c.indexOf(active);
+          if (i === -1) it.c.push(active); else it.c.splice(i, 1);
+          render();
+        });
+        it.el = b; li.appendChild(b); listEl.appendChild(li);
+      });
+      render();
+    }
+
+    function render() {
+      var s = split(items);
+      Array.prototype.forEach.call(peopleEl.children, function (b) {
+        b.setAttribute('aria-pressed', b.dataset.id === active ? 'true' : 'false');
+        b.setAttribute('aria-label', 'Claim as ' + nameOf[b.dataset.id] + ', share ' + money(s.each[b.dataset.id]));
+      });
+      PEOPLE.forEach(function (p) { tween(amtEls[p[0]], s.each[p[0]]); });
+      items.forEach(function (it) {
+        var mine = it.c.indexOf(active) !== -1, who = it.el.querySelector('.who');
+        it.el.classList.toggle('mine', mine);
+        it.el.classList.toggle('open', !it.c.length);
+        it.el.style.setProperty('--c', 'var(--' + active + ')');
+        it.el.setAttribute('aria-pressed', mine ? 'true' : 'false');
+        who.innerHTML = '';
+        if (!it.c.length) { who.textContent = 'Nobody yet'; return; }
+        it.c.forEach(function (id) {
+          var d = document.createElement('span'); d.className = 'dot'; d.dataset.id = id;
+          if (id !== 'you') d.style.background = 'var(--' + id + ')';
+          who.appendChild(d);
+        });
+        var names = it.c.map(function (id) { return nameOf[id]; });
+        who.appendChild(document.createTextNode(' ' + (names.length > 2 ? 'Split ' + names.length + ' ways' : names.join(' and '))));
+      });
+      document.getElementById('r-sub').textContent = money(s.subtotal);
+      document.getElementById('r-tax').textContent = money(s.tax);
+      document.getElementById('r-tip').textContent = money(s.tip);
+      document.getElementById('r-total').textContent = money(s.total);
+      var done = s.each.open === 0;
+      statusEl.classList.toggle('done', done);
+      msgEl.textContent = done
+        ? 'Every item claimed. ' + money(s.total) + ' settled to the penny.'
+        : money(s.each.open) + ' still unclaimed, tax and tip included.';
+    }
+
+    document.getElementById('demo-reset').addEventListener('click', reset);
+    demo.hidden = false;
+    reset();
+    tilt(document.getElementById('stage'), demo.querySelector('.stage-inner'), 10);
+  }
+
+  /* ---------- the pool: tap friends in, watch it fill ---------- */
+  var row = document.getElementById('chip-row');
+  if (row) {
+    var GOAL = 200000, START_BAL = 136000, bal = START_BAL;
+    var card = document.getElementById('vcard'), balEl = document.getElementById('vc-balance');
+    var subEl = document.getElementById('vc-sub'), fillEl = document.getElementById('vc-fill');
+    var lbl = document.getElementById('chip-lbl'), left = 4;
+    balEl.dataset.v = bal;
+    ['Zoe', 'Kofi', 'Lena', 'Raj'].forEach(function (name) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip-in'; b.textContent = name + ' + $160';
+      b.addEventListener('click', function () {
+        b.disabled = true; b.textContent = name + ' is in';
+        bal += 16000; left -= 1;
+        var pct = Math.round(bal / GOAL * 100);
+        tween(balEl, bal);
+        fillEl.style.width = pct + '%';
+        subEl.textContent = 'of ' + money(GOAL) + ' \u00b7 ' + pct + '%';
+        card.classList.toggle('funded', bal >= GOAL);
+        lbl.textContent = bal >= GOAL ? 'Fully funded. Everyone is in.'
+          : left + (left === 1 ? ' friend' : ' friends') + ' to go.';
+      });
+      row.appendChild(b);
+    });
+    row.hidden = false;
+    tilt(card.parentNode, card, 12);
+  }
+
+  /* ---------- scroll motion (see the CSS block of the same name) ---------- */
+  if (document.documentElement.className === 'js') {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var el = e.target; el.classList.add('in'); io.unobserve(el);
+        // Drop the hook once it has played so the stagger delay does not
+        // linger on the element's own hover transition.
+        if (el.hasAttribute('data-reveal')) setTimeout(function () { el.removeAttribute('data-reveal'); el.style.removeProperty('--i'); }, 1400);
+      });
+    }, { threshold: .18, rootMargin: '0px 0px -6% 0px' });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reveal], .feature'), function (el) { io.observe(el); });
+
+    var scrubs = Array.prototype.slice.call(document.querySelectorAll('[data-scrub]'));
+    var heroEl = document.querySelector('.hero'), story = document.getElementById('story');
+    var sVisual = story.querySelector('.story-visual'), sReceipt = story.querySelector('.s-receipt');
+    var aura = document.querySelector('.aura'), root = document.documentElement, queued = false;
+    function clamp(v) { return Math.min(1, Math.max(0, v)); }
+    function frame() {
+      queued = false;
+      var vh = window.innerHeight, y = window.scrollY;
+      heroEl.style.setProperty('--h', clamp(y / heroEl.offsetHeight).toFixed(3));
+
+      // ambient glow: wanders side to side and warms from rose to orange
+      var g = clamp(y / Math.max(1, root.scrollHeight - vh));
+      aura.style.setProperty('--ax', (50 + 44 * Math.sin(g * Math.PI * 5)).toFixed(1));
+      aura.style.setProperty('--ay', (46 + 26 * Math.cos(g * Math.PI * 3)).toFixed(1));
+      aura.style.setProperty('--hue', (350 + 42 * (.5 - .5 * Math.cos(g * Math.PI * 4))).toFixed(0));
+
+      // the pinned story
+      var sr = story.getBoundingClientRect();
+      if (sr.top < vh * 1.2 && sr.bottom > -vh * .2) {
+        var sp = clamp(-sr.top / Math.max(1, story.offsetHeight - vh));
+        story.style.setProperty('--sp', sp.toFixed(3));
+        story.style.setProperty('--e', clamp((vh - sr.top) / vh).toFixed(3));
+        story.style.setProperty('--a', clamp(sp / .32).toFixed(3));
+        story.style.setProperty('--b', clamp((sp - .34) / .28).toFixed(3));
+        story.style.setProperty('--c', clamp((sp - .66) / .26).toFixed(3));
+        story.dataset.stage = sp < .34 ? '0' : sp < .66 ? '1' : '2';
+      }
+
+      scrubs.forEach(function (el) {
+        var top = el.getBoundingClientRect().top;
+        if (top > vh * 1.2) return; // not near the screen yet; leave --p alone
+        // Near the end of the page there may not be enough scroll left for the
+        // last blocks to reach the settle point (tall screens, iPad), so they
+        // also finish as the scrollbar runs out.
+        var left = document.documentElement.scrollHeight - vh - window.scrollY;
+        el.style.setProperty('--p', Math.max(clamp((vh - top) / (vh * .7)), clamp(1 - left / (vh * .3))).toFixed(3));
+      });
+    }
+    // Shrink the story receipt to fit short screens.
+    function fit() {
+      sReceipt.style.setProperty('--fit', Math.min(parseFloat(getComputedStyle(sVisual).getPropertyValue('--big')) || 1, (sVisual.clientHeight - 36) / (sReceipt.offsetHeight + 12)).toFixed(3));
+    }
+    function queue() { if (!queued) { queued = true; requestAnimationFrame(frame); } }
+    scrubs.forEach(function (el) { el.style.setProperty('--p', '0'); });
+    story.dataset.stage = '0';
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', function () { fit(); queue(); });
+    window.addEventListener('load', function () { fit(); queue(); });
+    fit(); frame();
+  }
+})();
 </script>
 </body>
 </html>
